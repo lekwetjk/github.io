@@ -3,6 +3,71 @@ import { Arrow, PageShell } from "./components/SiteChrome";
 
 const latestNews = newsPosts.filter((post) => !isTenderPost(post)).slice(0, 4);
 
+const romanPillarNumbers = ["I", "II", "III", "IV"];
+
+const developmentPillars = [
+  {
+    icon: "shield",
+    href: "https://krd-ig.com.pl/bezpieczenstwo-bialkowe/",
+    title: "Bezpieczeństwo białkowe",
+    text: "Bezpieczeństwo białkowe to kluczowe zagadnienie dla polskiego drobiarstwa. W obliczu zagrożenia wprowadzenia zakazu importu soi GMO, będącej obecnie głównym źródłem białka w paszy, szukanie alternatywnych rozwiązań, które umniejszyłyby dodatkowo znaczenie importu komponentów pasz, jest jednym z naszych priorytetów.",
+  },
+  {
+    icon: "leaf",
+    href: "https://krd-ig.com.pl/jakosc-i-bezpieczenstwo/",
+    title: "Zrównoważony rozwój",
+    text: "Polityka zrównoważonego rozwoju to podstawowy cel branży drobiarskiej w Unii Europejskiej. Zachowanie oraz propagowanie standardów kontroli produkcji, dobrostanu zwierząt i ochrony środowiska sprawia, że drób z Polski utrzymuje niezwykle wysoką jakość. Dzięki nim tworzymy bezpieczne i atrakcyjne dla konsumentów produkty.",
+  },
+  {
+    icon: "megaphone",
+    href: "https://krd-ig.com.pl/promocja-drobiu/",
+    title: "Wizerunek i promocja",
+    text: "Podaż w branży drobiarskiej bywa nierzadko większa od popytu, a jego spontaniczny wzrost jest mało prawdopodobny. By rozszerzać rynek zbytu potrzeba wspólnej strategii promowania drobiu jako żywności i ochrony wizerunku całej branży. Musimy przekonywać krajowych i zagranicznych konsumentów do zwiększenia spożycia drobiu.",
+  },
+  {
+    icon: "globe",
+    href: "https://krd-ig.com.pl/globalizacja-rynku/",
+    title: "Globalizacja rynku",
+    text: "Polska jest obecnie największym producentem drobiu w UE. Należy także do czołówki eksporterów. Musimy wspólnie szukać nowych rynków zbytu i globalnie promować wysokie europejskie standardy produkcji. Właśnie one są podstawą przewagi konkurencyjnej polskiego drobiu na świecie. Polski drób jest już ceniony w Azji i Afryce.",
+  },
+];
+
+function PillarIcon({ name }: { name: string }) {
+  switch (name) {
+    case "shield":
+      return (
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M24 6 38 11.5V22c0 9.4-6.2 16.8-14 20-7.8-3.2-14-10.6-14-20V11.5L24 6Z" />
+          <path d="m18.5 24 3.8 3.8 7.7-8" />
+        </svg>
+      );
+    case "leaf":
+      return (
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M36 12c-12.2 0-22 9.8-22 22 0 1.7.2 3.4.6 5C24 38.6 33.4 31.8 37.5 18.6 33.8 22.5 28.4 25 22 25" />
+          <path d="M16 34c4.7-4.4 10.3-8.2 18-10" />
+        </svg>
+      );
+    case "megaphone":
+      return (
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M9 25h9l18-9v16l-18-9H9v2l7 4-1 7h5l1-5 6 3V18l-6 3-1-5h-5l1 7-7 4v-2Z" />
+          <path d="M35 18c2 1.2 3 3 3 6s-1 4.8-3 6" />
+        </svg>
+      );
+    case "globe":
+      return (
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <circle cx="24" cy="24" r="16" />
+          <path d="M8 24h32" />
+          <path d="M24 8c4.5 4.5 7 9.7 7 16s-2.5 11.5-7 16c-4.5-4.5-7-9.7-7-16s2.5-11.5 7-16Z" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
+
 const pathways = [
   {
     href: "/rynek",
@@ -60,22 +125,59 @@ export default function Home() {
       </section>
 
       <section className="home-stats" aria-label="Polski drób w liczbach">
-        <div className="shell stats-grid">
-          <div className="stats-title">
-            <p className="eyebrow eyebrow-light">Rynek</p>
-            <h2>Polski drób ma światową skalę</h2>
+        <div className="shell">
+          <div className="stats-grid">
+            <div className="stats-title">
+              <p className="eyebrow eyebrow-light">Rynek</p>
+              <h2>Polski drób ma światową skalę</h2>
+            </div>
+            <div>
+              <strong>№ 1</strong>
+              <p>producent mięsa drobiowego w Unii Europejskiej</p>
+            </div>
+            <div>
+              <strong>2,4 mln ton*</strong>
+              <p>eksportu mięsa i przetworów drobiowych</p>
+            </div>
+            <div>
+              <strong>6,2 mld €*</strong>
+              <p>wartości eksportu drobiu i jego przetworów</p>
+            </div>
           </div>
-          <div>
-            <strong>№ 1</strong>
-            <p>producent mięsa drobiowego w Unii Europejskiej</p>
+          <p className="stats-footnote">* dane za 2025 r.</p>
+        </div>
+      </section>
+
+      <section className="pillars-section" aria-labelledby="pillars-title">
+        <div className="shell">
+          <div className="section-intro intro-row pillars-intro">
+            <div>
+              <p className="eyebrow">Cztery filary rozwoju</p>
+              <h2 id="pillars-title">
+                <span>CZTERY FILARY ROZWOJU</span>
+                <span>POLSKIEGO DROBIARSTWA</span>
+              </h2>
+            </div>
           </div>
-          <div>
-            <strong>2,4 mln t</strong>
-            <p>eksportu mięsa i przetworów drobiowych</p>
-          </div>
-          <div>
-            <strong>6,2 mld €</strong>
-            <p>wartości eksportu drobiu i jego przetworów</p>
+          <div className="pillars-grid">
+            {developmentPillars.map((pillar, index) => (
+              <article
+                className={`pillar-card pillar-card--${pillar.icon}`}
+                key={pillar.title}
+              >
+                <div className="pillar-card-top">
+                  <span className="pillar-number">{romanPillarNumbers[index]}</span>
+                  <span className="pillar-icon" aria-hidden="true">
+                    <PillarIcon name={pillar.icon} />
+                  </span>
+                </div>
+                <h3>{pillar.title}</h3>
+                <p>{pillar.text}</p>
+                <a href={pillar.href} target="_blank" rel="noreferrer">
+                  Zobacz więcej <Arrow />
+                </a>
+              </article>
+            ))}
           </div>
         </div>
       </section>
