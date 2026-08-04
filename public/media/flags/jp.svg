@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="36" height="24" viewBox="0 0 36 24" role="img" aria-labelledby="title desc">
+  <title id="title">Flaga Japonii</title>
+  <desc id="desc">Biale tlo z czerwonym kolem po srodku</desc>
+  <rect width="36" height="24" fill="#ffffff"/>
+  <circle cx="18" cy="12" r="6.2" fill="#bc002d"/>
+  <rect x="0.5" y="0.5" width="35" height="23" fill="none" stroke="#dddddd"/>
+</svg>

@@ -928,19 +928,29 @@ blockquote {
 
 .directory-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-top: 54px;
   border-top: 1px solid var(--line);
   border-left: 1px solid var(--line);
 }
 
 .directory-card {
+  position: relative;
+  min-width: 0;
   min-height: 310px;
   display: flex;
   flex-direction: column;
   padding: 30px;
   border-right: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
+  transition:
+    background 180ms ease,
+    color 180ms ease;
+}
+
+.directory-card:hover {
+  background: var(--red);
+  color: white;
 }
 
 .directory-card h3 {
@@ -960,17 +970,18 @@ blockquote {
   line-height: 1.65;
 }
 
-.directory-card a {
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  margin-top: auto;
-  padding-top: 28px;
-  color: var(--red);
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
+.directory-card:hover .card-index {
+  color: white;
+}
+
+.directory-card:hover p {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.directory-card-arrow {
+  position: absolute;
+  right: 28px;
+  bottom: 24px;
 }
 
 .library-hero,
@@ -1288,6 +1299,10 @@ blockquote {
   gap: 70px;
 }
 
+.article-hero-grid > div {
+  min-width: 0;
+}
+
 .article-hero-grid > img {
   width: 100%;
   height: 360px;
@@ -1296,6 +1311,13 @@ blockquote {
 
 .article-kicker {
   margin-bottom: 20px;
+}
+
+.article-hero h1,
+.article-kicker,
+.article-hero-grid > div > p:not(.article-kicker) {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .article-layout {
@@ -1327,6 +1349,31 @@ blockquote {
   font: 400 16px/1.7 "Aptos", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
 }
 
+.prose .member-title-lockup {
+  margin: 0 0 10px;
+  color: var(--ink);
+  font: 800 31px/1.08 "Aptos", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.prose p,
+.prose li,
+.prose a,
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6,
+.resource-box a,
+.source-link,
+.source-link-inline,
+.article-aside {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .prose-justified p {
   text-align: justify;
 }
@@ -1348,6 +1395,160 @@ blockquote {
 
 .segment-table-wrap {
   margin: 28px 0;
+}
+
+.report-material-list {
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+
+.report-material-list li {
+  margin: 0;
+}
+
+.report-material-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  font: 700 18px/1.35 "Aptos", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.report-material-link .arrow {
+  flex: 0 0 auto;
+}
+
+.report-material-link:hover {
+  color: var(--red);
+}
+
+.prose-third-countries .third-countries-download a {
+  display: inline-flex;
+  align-items: center;
+  border-bottom: 2px solid currentColor;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.prose-third-countries .third-countries-country-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.prose-third-countries .third-countries-flag {
+  width: 36px;
+  height: 24px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  object-fit: cover;
+  box-shadow: 0 1px 2px rgba(25, 25, 24, 0.08);
+}
+
+.metodyka-prose h3 {
+  margin: 26px 0 10px;
+  font: 700 20px/1.2 "Aptos", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.metodyka-prose h4 {
+  margin: 18px 0 8px;
+  font: 700 17px/1.25 "Aptos", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  color: var(--ink-soft);
+}
+
+.metodyka-list {
+  margin: 0 0 22px;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+
+.metodyka-list li {
+  margin: 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.metodyka-list a {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  color: var(--ink);
+  font: 700 15px/1.4 "Aptos", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+.metodyka-list a .arrow {
+  flex: 0 0 auto;
+}
+
+.metodyka-list a:hover {
+  color: var(--red);
+}
+
+.metodyka-list-muted {
+  display: block;
+  padding: 12px 0;
+  color: var(--muted);
+  font: 600 15px/1.4 "Aptos", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+
+.hodowla-contact-prose .hodowla-contact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin: 22px 0 30px;
+}
+
+.hodowla-contact-prose .hodowla-contact-card {
+  padding: 20px;
+  border: 1px solid var(--line);
+  background: var(--white);
+}
+
+.hodowla-contact-prose .hodowla-contact-card h2 {
+  margin-top: 0;
+}
+
+.hodowla-contact-prose a[href^="mailto:"],
+.hodowla-contact-prose a[href^="tel:"] {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: rgba(25, 25, 24, 0.3);
+  text-underline-offset: 2px;
+}
+
+.hodowla-contact-prose a[href^="mailto:"]:hover,
+.hodowla-contact-prose a[href^="tel:"]:hover {
+  color: var(--red);
+}
+
+.hodowla-contact-prose .coverage-lines {
+  display: grid;
+  gap: 6px;
+}
+
+.hodowla-contact-prose .coverage-line {
+  line-height: 1.5;
+}
+
+.hodowla-contact-prose .coverage-region {
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .hodowla-contact-prose .hodowla-contact-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .myth-fact-list {
@@ -1879,6 +2080,7 @@ blockquote {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-width: 0;
   gap: 16px;
   padding: 14px 0;
   border-bottom: 1px solid var(--line);
@@ -1886,6 +2088,11 @@ blockquote {
   font-weight: 800;
   line-height: 1.4;
   text-transform: uppercase;
+}
+
+.resource-box a .arrow,
+.source-link .arrow {
+  flex: 0 0 auto;
 }
 
 .resource-box a:hover,
@@ -2339,7 +2546,7 @@ blockquote {
   .archive-grid,
   .team-grid,
   .office-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .pathway-card,

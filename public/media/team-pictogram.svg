@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-labelledby="title desc">
+  <title id="title">Piktogram zespolu</title>
+  <desc id="desc">Stylizowana ikona trzech osob symbolizujaca zespol</desc>
+  <rect width="640" height="640" rx="72" fill="#f4f8f4"/>
+  <circle cx="320" cy="220" r="76" fill="#1f5f3a"/>
+  <path d="M188 454c0-85 59-138 132-138s132 53 132 138v50H188z" fill="#1f5f3a"/>
+  <circle cx="198" cy="264" r="54" fill="#3b8a5b"/>
+  <path d="M94 468c0-60 43-99 104-99 23 0 44 6 61 18-24 21-42 50-49 83v34H94z" fill="#3b8a5b"/>
+  <circle cx="442" cy="264" r="54" fill="#3b8a5b"/>
+  <path d="M430 470c-7-33-25-62-49-83 17-12 38-18 61-18 61 0 104 39 104 99v36H430z" fill="#3b8a5b"/>
+</svg>

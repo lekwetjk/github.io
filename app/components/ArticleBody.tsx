@@ -197,6 +197,10 @@ export function ArticleBody({
 }) {
   const chinaGuideHeadingPattern =
     /^Poniżej prezentujemy przewodnik eksportera mięsa drobiowego na rynek Chin\.?$/i;
+  const resolvedSource =
+    slug === "czlonkowie"
+      ? "https://krd-ig.com.pl/czlonkowie/"
+      : source;
   const chinaGuideDownloadHref =
     slug === "przedstawicielstwo-w-chinach"
       ? links.find((link) => link.document)?.href ??
@@ -328,7 +332,7 @@ export function ArticleBody({
               ))}
             </div>
           </section>
-          <a className="source-link" href={source}>
+          <a className="source-link" href={resolvedSource}>
             Zobacz materiał na obecnej stronie KRD-IG <Arrow />
           </a>
         </article>
@@ -350,7 +354,7 @@ export function ArticleBody({
               </article>
             ))}
           </div>
-          <a className="source-link source-link-inline" href={source}>
+          <a className="source-link source-link-inline" href={resolvedSource}>
             Zobacz materiał na obecnej stronie KRD-IG <Arrow />
           </a>
         </article>
@@ -376,7 +380,7 @@ export function ArticleBody({
               <p key={`${index}-${paragraph.slice(0, 20)}`}>{paragraph}</p>
             ),
           )}
-          <a className="source-link source-link-inline" href={source}>
+          <a className="source-link source-link-inline" href={resolvedSource}>
             Zobacz materiał na obecnej stronie KRD-IG <Arrow />
           </a>
         </article>
@@ -386,45 +390,113 @@ export function ArticleBody({
 
   if (slug === "raporty") {
     const reportTitleIndexes = [1, 4, 5, 7, 8, 10];
-    const linksByParagraphIndex = new Map<number, ContentLink>();
+    const reportItems = Array.from(
+      new Map(
+        reportTitleIndexes
+          .map((paragraphIndex, linkIndex) => {
+            const link = links[linkIndex];
 
-    reportTitleIndexes.forEach((paragraphIndex, linkIndex) => {
-      const link = links[linkIndex];
+            if (!link) {
+              return null;
+            }
 
-      if (link) {
-        linksByParagraphIndex.set(paragraphIndex, link);
-      }
-    });
+            const paragraphTitle = visibleParagraphs[paragraphIndex]?.trim();
+            const fallbackLabel = link.label.replace(/^POBIERZ\s+/i, "").trim();
+
+            return {
+              href: link.href,
+              label: paragraphTitle || fallbackLabel || `Raport ${linkIndex + 1}`,
+            };
+          })
+          .filter((item): item is { href: string; label: string } => item !== null)
+          .filter((item) => {
+            if (!item.label) {
+              return false;
+            }
+
+            const normalized = item.label.toLocaleLowerCase("pl");
+            return normalized !== "otwórz źródło" && normalized !== "czytaj dalej";
+          })
+          .map((item) => [item.href, item]),
+      ).values(),
+    );
+
+    const introParagraph = visibleParagraphs
+      .map((paragraph) => paragraph.trim())
+      .find((paragraph) => paragraph && !/^raporty$/i.test(paragraph));
 
     return (
       <div className="article-layout article-layout-full shell">
         <article className="prose">
+          <h2>Materiały i raporty</h2>
+          {introParagraph && <p>{introParagraph}</p>}
+          <ul className="report-material-list">
+            {reportItems.map((item) => (
+              <li key={item.href}>
+                <a className="report-material-link" href={item.href}>
+                  <span>{item.label}</span>
+                  <Arrow />
+                </a>
+              </li>
+            ))}
+          </ul>
+          <a className="source-link source-link-inline" href={resolvedSource}>
+            Zobacz materiał na obecnej stronie KRD-IG <Arrow />
+          </a>
+        </article>
+      </div>
+    );
+  }
+
+  if (slug === "kraje-trzecie") {
+    const downloadHref =
+      "https://krd-ig.com.pl/wp-content/uploads/2024/09/KLUCZOWE-KIERUNKI-EKSPORTOWE-DLA-POLSKIEGO-DROBIARSTWA-1.pdf";
+    const countryFlags = new Map<string, { src: string; alt: string }>([
+      ["CHINY", { src: "/media/flags/cn.svg", alt: "Flaga Chin" }],
+      ["JAPONIA", { src: "/media/flags/jp.svg", alt: "Flaga Japonii" }],
+      ["RPA", { src: "/media/flags/za.svg", alt: "Flaga Republiki Południowej Afryki" }],
+      ["SINGAPUR", { src: "/media/flags/sg.svg", alt: "Flaga Singapuru" }],
+    ]);
+
+    return (
+      <div className="article-layout article-layout-full shell">
+        <article className="prose prose-justified prose-third-countries">
           {visibleParagraphs.map((paragraph, index) => {
             const normalized = paragraph.trim();
+            const normalizedUpper = normalized.toLocaleUpperCase("pl");
+            const countryFlag = countryFlags.get(normalizedUpper);
 
-            if (normalized.toUpperCase() === "POBIERZ") {
-              return null;
-            }
-
-            const linkedTitle = linksByParagraphIndex.get(index);
-
-            if (index > 0 && looksLikeHeading(paragraph)) {
-              return linkedTitle ? (
-                <h2 key={`${index}-${paragraph.slice(0, 20)}`}>
-                  <a href={linkedTitle.href}>
-                    {paragraph}
-                  </a>
+            if (normalizedUpper === "POBIERZ") {
+              return (
+                <h2 className="third-countries-download" key={`${index}-${normalized}`}>
+                  <a href={downloadHref}>POBIERZ</a>
                 </h2>
-              ) : (
-                <h2 key={`${index}-${paragraph.slice(0, 20)}`}>{paragraph}</h2>
               );
             }
 
-            return (
-              <p key={`${index}-${paragraph.slice(0, 20)}`}>{paragraph}</p>
-            );
+            if (countryFlag) {
+              return (
+                <h2 className="third-countries-country-heading" key={`${index}-${normalized}`}>
+                  <img
+                    className="third-countries-flag"
+                    src={countryFlag.src}
+                    alt={countryFlag.alt}
+                    width={36}
+                    height={24}
+                  />
+                  {normalized}
+                </h2>
+              );
+            }
+
+            if (index > 0 && looksLikeHeading(paragraph)) {
+              return <h2 key={`${index}-${paragraph.slice(0, 20)}`}>{paragraph}</h2>;
+            }
+
+            return <p key={`${index}-${paragraph.slice(0, 20)}`}>{paragraph}</p>;
           })}
-          <a className="source-link source-link-inline" href={source}>
+
+          <a className="source-link source-link-inline" href={resolvedSource}>
             Zobacz materiał na obecnej stronie KRD-IG <Arrow />
           </a>
         </article>
@@ -461,7 +533,7 @@ export function ArticleBody({
 
             return <p key={`${index}-${paragraph.slice(0, 20)}`}>{paragraph}</p>;
           })}
-          <a className="source-link source-link-inline" href={source}>
+          <a className="source-link source-link-inline" href={resolvedSource}>
             Zobacz materiał na obecnej stronie KRD-IG <Arrow />
           </a>
         </article>
@@ -532,7 +604,7 @@ export function ArticleBody({
             ))}
           </div>
 
-          <a className="source-link source-link-inline" href={source}>
+          <a className="source-link source-link-inline" href={resolvedSource}>
             Zobacz materiał na obecnej stronie KRD-IG <Arrow />
           </a>
         </article>
@@ -598,7 +670,7 @@ export function ArticleBody({
             ))}
           </div>
 
-          <a className="source-link source-link-inline" href={source}>
+          <a className="source-link source-link-inline" href={resolvedSource}>
             Zobacz materiał na obecnej stronie KRD-IG <Arrow />
           </a>
         </article>
@@ -668,7 +740,7 @@ export function ArticleBody({
             ))}
           </div>
 
-          <a className="source-link source-link-inline" href={source}>
+          <a className="source-link source-link-inline" href={resolvedSource}>
             Zobacz materiał na obecnej stronie KRD-IG <Arrow />
           </a>
         </article>
@@ -747,7 +819,7 @@ export function ArticleBody({
             ))}
           </div>
 
-          <a className="source-link source-link-inline" href={source}>
+          <a className="source-link source-link-inline" href={resolvedSource}>
             Zobacz materiał na obecnej stronie KRD-IG <Arrow />
           </a>
         </article>
@@ -989,7 +1061,7 @@ export function ArticleBody({
             </div>
           )}
 
-          <a className="source-link source-link-inline" href={source}>
+          <a className="source-link source-link-inline" href={resolvedSource}>
             Zobacz materiał na obecnej stronie KRD-IG <Arrow />
           </a>
         </article>
@@ -1043,7 +1115,7 @@ export function ArticleBody({
             istotne z punktu widzenia bezpieczeństwa, kontroli i świadomego wyboru konsumenta.
           </p>
 
-          <a className="source-link source-link-inline" href={source}>
+          <a className="source-link source-link-inline" href={resolvedSource}>
             Zobacz materiał na obecnej stronie KRD-IG <Arrow />
           </a>
         </article>
@@ -1109,7 +1181,7 @@ export function ArticleBody({
             ))}
           </div>
 
-          <a className="source-link source-link-inline" href={source}>
+          <a className="source-link source-link-inline" href={resolvedSource}>
             Zobacz materiał na obecnej stronie KRD-IG <Arrow />
           </a>
         </article>
@@ -1248,12 +1320,489 @@ export function ArticleBody({
     );
   }
 
-  const shouldJustifyArticleText = slug === "bezpieczenstwo-bialkowe";
+  if (slug === "metodyka-i-biuletyny") {
+    const metodykaHref = "https://krd-ig.com.pl/metodyka-1-2026/";
+
+    const biuletyn2020 = [
+      { label: "Okładka i spis treści", href: "https://krd-ig.com.pl/okladka-afiliacja_2020/" },
+      { label: "Rozdział 1", href: "https://krd-ig.com.pl/rozdzial-1_2020/" },
+      { label: "Rozdział 2", href: "https://krd-ig.com.pl/rozdzial-2_2020/" },
+      { label: "Rozdział 3", href: "https://krd-ig.com.pl/rozdzial-3_2020/" },
+      { label: "Rozdział 4", href: "https://krd-ig.com.pl/rozdzial-4_2020/" },
+      { label: "Rozdział 5", href: "https://krd-ig.com.pl/rozdzial-5_2020/" },
+      { label: "Rozdział 6", href: "https://krd-ig.com.pl/rozdzial-6_2020/" },
+      { label: "Rozdział 7", href: "https://krd-ig.com.pl/rozdzial-7_2020/" },
+      { label: "Rozdział 8", href: "https://krd-ig.com.pl/rozdzial-8_2020/" },
+      { label: "Rozdział 9", href: "https://krd-ig.com.pl/rozdzial-9_2020/" },
+    ];
+
+    const biuletyn2021 = [
+      { label: "Okładka i spis treści", href: "https://krd-ig.com.pl/okladka-afiliacja_2021/" },
+      { label: "Rozdział 1", href: "https://krd-ig.com.pl/rozdzial-1_2021/" },
+      { label: "Rozdział 2", href: "https://krd-ig.com.pl/rozdzial-2_2021/" },
+      { label: "Rozdział 3", href: "https://krd-ig.com.pl/rozdzial-3_2021/" },
+      { label: "Rozdział 4", href: "https://krd-ig.com.pl/rozdzial-4_2021/" },
+      { label: "Rozdział 5", href: "https://krd-ig.com.pl/rozdzial-5_2021/" },
+      { label: "Rozdział 6", href: "https://krd-ig.com.pl/rozdzial-6_2021/" },
+      { label: "Rozdział 7", href: "https://krd-ig.com.pl/rozdzial-7_2021/" },
+      { label: "Rozdział 8", href: "https://krd-ig.com.pl/rozdzial-8_2021/" },
+      { label: "Rozdział 9", href: "https://krd-ig.com.pl/rozdzial-9_2021/" },
+    ];
+
+    const biuletyn2022 = [
+      { label: "Okładka i spis treści", href: "https://krd-ig.com.pl/okladka-afiliacja_2022/" },
+      { label: "Rozdział 1", href: "https://krd-ig.com.pl/rozdzial-1_2022/" },
+      { label: "Rozdział 2", status: "w opracowaniu" },
+      { label: "Rozdział 3", href: "https://krd-ig.com.pl/rozdzial-3_2022/" },
+      { label: "Rozdział 4", href: "https://krd-ig.com.pl/rozdzial-4_2022/" },
+      { label: "Rozdział 5", status: "w opracowaniu" },
+      { label: "Rozdział 6", href: "https://krd-ig.com.pl/rozdzial-6_2022/" },
+      { label: "Rozdział 7", href: "https://krd-ig.com.pl/rozdzial-7_2022/" },
+      { label: "Tabela 65", href: "https://krd-ig.com.pl/rozdzial-7_2022/" },
+      { label: "Rozdział 8", href: "https://krd-ig.com.pl/rozdzial-8_2022/" },
+      { label: "Rozdział 9", href: "https://krd-ig.com.pl/rozdzial-9_2022/" },
+      { label: "Spis treści", href: "https://krd-ig.com.pl/spis-tresci-strona-3_2022/" },
+    ];
+
+    const biuletyny2023 = [
+      { label: "Biuletyn kur mięsnych (2023)", status: "w opracowaniu" },
+      { label: "Biuletyn indyków (2023)", href: "https://krd-ig.com.pl/biuletyn-indyki-2023/" },
+      { label: "Biuletyn kur nieśnych (2023)", status: "w opracowaniu" },
+      {
+        label: "Biuletyn drobiu wodnego (2023)",
+        href: "https://krd-ig.com.pl/wp-content/uploads/2025/10/Biuletyn_Drob_wodny_2023.pdf",
+      },
+    ];
+
+    const biuletyny2024 = [
+      { label: "Biuletyn kur mięsnych (2024)", status: "w opracowaniu" },
+      { label: "Biuletyn indyków (2024)", href: "https://krd-ig.com.pl/biuletyn-indyki-2024/" },
+      { label: "Biuletyn kur nieśnych (2024)", status: "w opracowaniu" },
+      {
+        label: "Biuletyn drobiu wodnego (2024)",
+        href: "https://krd-ig.com.pl/wp-content/uploads/2025/10/Biuletyn_Drob_wodny_2024.pdf",
+      },
+    ];
+
+    const legalBases = [
+      {
+        label:
+          "Ustawa z dnia 10.12.2020 r. o organizacji hodowli i rozrodzie zwierząt gospodarskich (Dz.U. 2021 poz. 36)",
+        href: "https://isap.sejm.gov.pl/isap.nsf/download.xsp/WDU20210000036/O/D20210036.pdf",
+      },
+      {
+        label:
+          "Rozporządzenie MRiRW z dnia 1.07.2021 r. w sprawie szczegółowych wymagań dla prowadzenia księgi hodowlanej (Dz.U. 2021 poz. 1248)",
+        href: "https://isap.sejm.gov.pl/isap.nsf/download.xsp/WDU20210001248/O/D20211248.pdf",
+      },
+      {
+        label:
+          "Rozporządzenie MRiRW z dnia 24.01.2022 r. w sprawie upoważnienia do prowadzenia oceny wartości użytkowej i genetycznej (Dz.U. 2022 poz. 177)",
+        href: "https://isap.sejm.gov.pl/isap.nsf/download.xsp/WDU20220000177/O/D20220177.pdf",
+      },
+    ];
+
+    const ksiegi2023 = [
+      {
+        category: "Kury nieśne",
+        items: [
+          {
+            label: "MIENIA",
+            href: "https://krd-ig.com.pl/wp-content/uploads/2025/07/KSIEGI_KURY-NIESNE_MESSA_2023.pdf",
+          },
+          {
+            label: "RSZEW",
+            href: "https://krd-ig.com.pl/wp-content/uploads/2025/07/KSIEGI_KURY-NIESNE_RSZEW_2023.pdf",
+          },
+          {
+            label: "UR KRAKÓW",
+            href: "https://krd-ig.com.pl/wp-content/uploads/2025/07/KSIEGI_KUR_UR-KRAKOW_2023.pdf",
+          },
+          { label: "A. SKÓRNICKA", status: "w opracowaniu" },
+        ],
+      },
+      {
+        category: "Kaczki",
+        items: [
+          {
+            label: "ADAM BELT",
+            href: "https://krd-ig.com.pl/wp-content/uploads/2025/07/KSIEGI_KACZKI_ADAM-BELT__2023.pdf",
+          },
+          { label: "IZ-PIB DWORZYSKA", status: "w opracowaniu" },
+        ],
+      },
+      {
+        category: "Gęsi",
+        items: [
+          {
+            label: "IZ-PIB KOŁUDA WIELKA",
+            href: "https://krd-ig.com.pl/wp-content/uploads/2025/07/KSIEGI-_GESI_KOLUDA_2023.pdf",
+          },
+          {
+            label: "UR KRAKÓW",
+            href: "https://krd-ig.com.pl/wp-content/uploads/2025/07/KSIEGI_GESI_UR-KRAKOW_2023.pdf",
+          },
+          {
+            label: "UP WROCŁAW",
+            href: "https://krd-ig.com.pl/wp-content/uploads/2025/07/KSIEGI_GESI_UP_WROCLAW_2023.pdf",
+          },
+          {
+            label: "M. ŁAJKOWSKA - KOŁODZIEJ",
+            href: "https://krd-ig.com.pl/wp-content/uploads/2025/07/KSIEGI_GESI_KOLODZIEJ_2023.pdf",
+          },
+        ],
+      },
+    ];
+
+    const ksiegi2024 = [
+      {
+        category: "Kury nieśne",
+        items: ["MIENIA", "RSZEW", "UR KRAKÓW", "A. SKÓRNICKA"],
+      },
+      {
+        category: "Kaczki",
+        items: ["ADAM BELT", "IZ-PIB DWORZYSKA"],
+      },
+      {
+        category: "Gęsi",
+        items: ["IZ-PIB KOŁUDA WIELKA", "UR KRAKÓW", "UP WROCŁAW", "M. ŁAJKOWSKA - KOŁODZIEJ"],
+      },
+    ];
+
+    const renderLinkList = (
+      items: Array<{ label: string; href?: string; status?: string }>,
+      listKey: string,
+    ) => (
+      <ul className="metodyka-list">
+        {items.map((item, index) => (
+          <li key={`${listKey}-${index}-${item.label}`}>
+            {item.href ? (
+              <a href={item.href}>
+                <span>{item.label}</span>
+                <Arrow />
+              </a>
+            ) : (
+              <span className="metodyka-list-muted">
+                {item.label} - {item.status ?? "w opracowaniu"}
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+    );
+
+    return (
+      <div className="article-layout article-layout-full shell">
+        <article className="prose metodyka-prose">
+          <h2>Zakres i metodyka (wersja 1.2026)</h2>
+          {renderLinkList([{ label: "POBIERZ", href: metodykaHref }], "metodyka-main")}
+
+          <h2>Biuletyn wyników oceny wartości użytkowej drobiu - 2020</h2>
+          {renderLinkList(biuletyn2020, "biuletyn-2020")}
+
+          <h2>Biuletyn wyników oceny wartości użytkowej drobiu - 2021</h2>
+          {renderLinkList(biuletyn2021, "biuletyn-2021")}
+
+          <h2>Biuletyn wyników oceny wartości użytkowej drobiu - 2022</h2>
+          {renderLinkList(biuletyn2022, "biuletyn-2022")}
+
+          <h2>Biuletyny wyników oceny wartości użytkowej drobiu - 2023</h2>
+          {renderLinkList(biuletyny2023, "biuletyny-2023")}
+
+          <h2>Biuletyny wyników oceny wartości użytkowej drobiu - 2024</h2>
+          {renderLinkList(biuletyny2024, "biuletyny-2024")}
+
+          <h2>Księgi hodowlane drobiu</h2>
+          <h3>Podstawy prawne</h3>
+          {renderLinkList(legalBases, "legal-bases")}
+
+          <h3>Księgi - 2023</h3>
+          {ksiegi2023.map((group) => (
+            <section key={`ksiegi-2023-${group.category}`}>
+              <h4>{group.category}</h4>
+              {renderLinkList(group.items, `ksiegi-2023-${group.category}`)}
+            </section>
+          ))}
+
+          <h3>Księgi - 2024</h3>
+          {ksiegi2024.map((group) => (
+            <section key={`ksiegi-2024-${group.category}`}>
+              <h4>{group.category}</h4>
+              <ul className="metodyka-list">
+                {group.items.map((item) => (
+                  <li key={`ksiegi-2024-${group.category}-${item}`}>
+                    <span className="metodyka-list-muted">{item} - w opracowaniu</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+
+          <a className="source-link source-link-inline" href={resolvedSource}>
+            Zobacz materiał na obecnej stronie KRD-IG <Arrow />
+          </a>
+        </article>
+      </div>
+    );
+  }
+
+  if (slug === "cennik") {
+    const cennikDocumentHref =
+      links.find((link) => link.document)?.href ?? links[0]?.href ?? resolvedSource;
+
+    return (
+      <div className="article-layout article-layout-full shell">
+        <article className="prose">
+          {visibleParagraphs.map((paragraph, index) => {
+            const normalizedUpper = paragraph.trim().toLocaleUpperCase("pl");
+
+            if (normalizedUpper === "POBIERZ") {
+              return (
+                <h2 key={`${index}-cennik-download`}>
+                  <a href={cennikDocumentHref}>POBIERZ</a>
+                </h2>
+              );
+            }
+
+            return index > 0 && looksLikeHeading(paragraph) ? (
+              <h2 key={`${index}-${paragraph.slice(0, 20)}`}>{paragraph}</h2>
+            ) : (
+              <p key={`${index}-${paragraph.slice(0, 20)}`}>{paragraph}</p>
+            );
+          })}
+          <a className="source-link source-link-inline" href={resolvedSource}>
+            Zobacz materiał na obecnej stronie KRD-IG <Arrow />
+          </a>
+        </article>
+      </div>
+    );
+  }
+
+  if (slug === "dane-kontaktowe") {
+    const specialists = [
+      { name: "Eugeniusz Wencek", phone: "698 630 690", email: "e.wencek@krd-ig.pl" },
+      { name: "Iwona Kałużna", phone: "698 688 013", email: "poznan@krd-ig.pl" },
+      { name: "Aleksandra Głębocka", phone: "698 630 688", email: "a.glebocka@krd-ig.pl" },
+      { name: "Dominik Kędzierski", phone: "698 630 691", email: "d.kedzierski@krd-ig.pl" },
+      { name: "Agnieszka Sobierajska", phone: "698 630 696", email: "a.sobierajska@krd-ig.pl" },
+      { name: "Mateusz Grzelak", phone: "698 630 689", email: "m.grzelak@krd-ig.pl" },
+      { name: "Marta Pałyszka", phone: "698 630 692", email: "m.palyszka@krd-ig.pl" },
+      { name: "Wojciech Suchocki", phone: "698 630 697", email: "w.suchocki@krd-ig.pl" },
+      { name: "Łukasz Kozak", phone: "698 630 694", email: "l.kozak@krd-ig.pl" },
+      { name: "Krzysztof Winiarski", phone: "698 630 695", email: "k.winiarski@krd-ig.pl" },
+    ];
+
+    const coverageRows = [
+      {
+        specialist: "Mateusz Grzelak",
+        phone: "698 630 689",
+        email: "m.grzelak@krd-ig.pl",
+        coverage:
+          "kujawsko-pomorskie (wszystkie), pomorskie (wszystkie), zachodniopomorskie (wszystkie), warmińsko-mazurskie (iławski, nowomiejski, Miłomłyn)",
+      },
+      {
+        specialist: "Marta Pałyszka",
+        phone: "698 630 692",
+        email: "m.palyszka@krd-ig.pl",
+        coverage:
+          "lubelskie (wszystkie), małopolskie (brzeski, dąbrowski, gorlicki, nowosądecki, tarnowski, Tarnów, Nowy Sącz), mazowieckie (białobrzeski, garwoliński, grodziski, grójecki, kozienicki, lipski, łosicki, miński, otwocki, piaseczyński, pruszkowski, przysuski, radomski, siedlecki, sokołowski, szydłowiecki, węgrowski, wołomiński, zwoleński, żyrardowski, Radom, Siedlce), podkarpackie (wszystkie), świętokrzyskie (wszystkie)",
+      },
+      {
+        specialist: "Wojciech Suchocki",
+        phone: "698 630 697",
+        email: "w.suchocki@krd-ig.pl",
+        coverage:
+          "lubuskie (wszystkie), wielkopolskie (chodzieski, czarnkowsko-trzcianecki, gnieźnieński, gostyński, grodziski, jarociński, kaliski, kępiński, kościański, krotoszyński, leszczyński, międzychodzki, nowotomyski, obornicki, ostrowski, ostrzeszowski, pilski, pleszewski, poznański, rawicki, słupecki, szamotulski, średzki, śremski, wągrowiecki, wolsztyński, wrzesiński, złotowski, Poznań, Kalisz, Leszno)",
+      },
+      {
+        specialist: "Krzysztof Winiarski",
+        phone: "698 630 695",
+        email: "k.winiarski@krd-ig.pl",
+        coverage:
+          "śląskie (wszystkie), mazowieckie (mławski, sierpecki, żuromiński), dolnośląskie (wszystkie), małopolskie (bocheński, chrzanowski, krakowski, limanowski, miechowski, myślenicki, nowotarski, olkuski, oświęcimski, proszowicki, suski, tatrzański, wadowicki, wielicki), wielkopolskie (kolski, koniński, turecki, Konin)",
+      },
+      {
+        specialist: "Łukasz Kozak",
+        phone: "698 630 694",
+        email: "l.kozak@krd-ig.pl",
+        coverage: "opolskie (wszystkie)",
+      },
+      {
+        specialist: "Agnieszka Sobierajska",
+        phone: "698 630 696",
+        email: "a.sobierajska@krd-ig.pl",
+        coverage:
+          "podlaskie (wszystkie), łódzkie (wszystkie), mazowieckie (ciechanowski, gostyniński, legionowski, makowski, nowodworski, ostrołęcki, ostrowski, płocki, płoński, przasnyski, pułtuski, sochaczewski, warszawski zachodni, wyszkowski), warmińsko-mazurskie (bartoszycki, braniewski, działdowski, elbląski, ełcki, giżycki, gołdapski, kętrzyński, lidzbarski, mrągowski, nidzicki, olecki, olsztyński, ostródzki, piski, szczycieński, węgorzewski)",
+      },
+    ];
+
+    return (
+      <div className="article-layout article-layout-full shell">
+        <article className="prose hodowla-contact-prose">
+          <section className="hodowla-contact-grid">
+            <article className="hodowla-contact-card">
+              <h2>Dział Hodowli i Oceny Drobiu</h2>
+              <p>ul. Naramowicka 144, skr. poczt. 11, 60-975 Poznań</p>
+              <p>
+                <a href="tel:+48618242651">+48 61 824 26 51/52</a>
+                <br />
+                <a href="tel:+48618242653">+48 61 824 26 53</a>
+              </p>
+              <p>
+                <a href="mailto:poznan@krd-ig.pl">poznan@krd-ig.pl</a>
+              </p>
+            </article>
+
+            <article className="hodowla-contact-card">
+              <h2>Kierownik Działu KRD-IG</h2>
+              <p>
+                <strong>dr inż. Eugeniusz Wencek</strong>
+              </p>
+              <p>
+                <a href="tel:+48618244911">tel. 61 824 49 11</a>
+                <br />
+                <a href="tel:+48698630690">kom. 698 630 690</a>
+              </p>
+              <p>
+                <a href="mailto:e.wencek@krd-ig.pl">e.wencek@krd-ig.pl</a>
+              </p>
+            </article>
+          </section>
+
+          <h2>
+            Wykaz telefonów komórkowych oraz adresów mailowych specjalistów ds. hodowli i oceny
+            drobiu
+          </h2>
+          <div className="segment-table-wrap">
+            <table className="segment-table">
+              <thead>
+                <tr>
+                  <th>Lp.</th>
+                  <th>Imię i nazwisko</th>
+                  <th>Numer telefonu</th>
+                  <th>Adres e-mailowy</th>
+                </tr>
+              </thead>
+              <tbody>
+                {specialists.map((item, index) => (
+                  <tr key={`specialist-${item.name}`}>
+                    <td>{index + 1}</td>
+                    <td>{item.name}</td>
+                    <td>
+                      <a href={`tel:+48${item.phone.replace(/\s+/g, "")}`}>{item.phone}</a>
+                    </td>
+                    <td>
+                      <a href={`mailto:${item.email}`}>{item.email}</a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <section className="hodowla-contact-grid">
+            <article className="hodowla-contact-card">
+              <h2>Informatyk</h2>
+              <p>
+                <strong>Rafał Michałowski</strong>
+              </p>
+              <p>
+                <a href="mailto:rmich@krd-ig.pl">rmich@krd-ig.pl</a>
+              </p>
+            </article>
+
+            <article className="hodowla-contact-card">
+              <h2>Specjalista ds. finansowo-księgowych</h2>
+              <p>
+                <strong>Urszula Frankowska</strong>
+              </p>
+              <p>
+                <a href="mailto:u.frankowska@krd-ig.pl">u.frankowska@krd-ig.pl</a>
+              </p>
+              <p>
+                Dział Windykacji: <a href="tel:+48698630688">698 630 688</a>
+              </p>
+            </article>
+          </section>
+
+          <h2>TERYTORIALNY ZASIĘG DZIAŁANIA specjalistów ds. hodowli i oceny drobiu</h2>
+          <div className="segment-table-wrap">
+            <table className="segment-table">
+              <thead>
+                <tr>
+                  <th>Lp.</th>
+                  <th>Wykonujący ocenę</th>
+                  <th>Województwo (powiaty)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {coverageRows.map((item, index) => (
+                  <tr key={`coverage-${item.specialist}`}>
+                    <td>{index + 1}</td>
+                    <td>
+                      <strong>{item.specialist}</strong>
+                      <br />
+                      <a href={`tel:+48${item.phone.replace(/\s+/g, "")}`}>{item.phone}</a>
+                      <br />
+                      <a href={`mailto:${item.email}`}>{item.email}</a>
+                    </td>
+                    <td>
+                      <div className="coverage-lines">
+                        {(item.coverage.match(/[^,]+?\([^)]*\)|[^,]+/g) ?? [item.coverage]).map(
+                          (entry, entryIndex) => {
+                            const line = entry.trim();
+                            const parts = line.match(/^([^()]+)\((.*)\)$/);
+
+                            return (
+                              <div className="coverage-line" key={`${item.specialist}-${entryIndex}`}>
+                                {parts ? (
+                                  <>
+                                    <strong className="coverage-region">{parts[1].trim()}</strong>
+                                    <span> ({parts[2].trim()})</span>
+                                  </>
+                                ) : (
+                                  <strong className="coverage-region">{line}</strong>
+                                )}
+                              </div>
+                            );
+                          },
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <a className="source-link source-link-inline" href={resolvedSource}>
+            Zobacz materiał na obecnej stronie KRD-IG <Arrow />
+          </a>
+        </article>
+      </div>
+    );
+  }
+
+  const shouldJustifyArticleText =
+    slug === "bezpieczenstwo-bialkowe" || slug === "globalizacja-rynku";
+  const shouldUseFullWidthArticleLayout =
+    slug === "globalizacja-rynku" || slug === "bezpieczenstwo-bialkowe";
 
   return (
-    <div className="article-layout shell">
+    <div
+      className={`article-layout${shouldUseFullWidthArticleLayout ? " article-layout-full" : ""} shell`}
+    >
       <article className={`prose${shouldJustifyArticleText ? " prose-justified" : ""}`}>
         {visibleParagraphs.map((paragraph, index) => {
+          if (slug === "czlonkowie" && index < 2) {
+            const label = index === 0 ? "CZŁONKOWIE" : "KRD-IG";
+            return (
+              <p className="member-title-lockup" key={`${index}-${label}`}>
+                {label}
+              </p>
+            );
+          }
+
           if (
             slug === "przedstawicielstwo-w-chinach" &&
             chinaGuideHeadingPattern.test(paragraph.trim())
@@ -1274,29 +1823,17 @@ export function ArticleBody({
             <p key={`${index}-${paragraph.slice(0, 20)}`}>{paragraph}</p>
           );
         })}
-      </article>
-      <aside className="article-aside">
-        {links.length > 0 && (
-          <div className="resource-box">
-            <h2>Materiały i odnośniki</h2>
-            {links.slice(0, 40).map((link) => (
-              <a
-                href={link.href}
-                key={`${link.href}-${link.label}`}
-              >
-                <span>{link.document ? "Dokument" : link.label}</span>
-                <Arrow />
-              </a>
-            ))}
-          </div>
+        {shouldUseFullWidthArticleLayout && (
+          <a className="source-link source-link-inline" href={resolvedSource}>
+            Zobacz materiał na obecnej stronie KRD-IG <Arrow />
+          </a>
         )}
-        <a
-          className="source-link"
-          href={source}
-        >
+      </article>
+      {!shouldUseFullWidthArticleLayout && (
+        <a className="source-link source-link-inline" href={resolvedSource}>
           Zobacz materiał na obecnej stronie KRD-IG <Arrow />
         </a>
-      </aside>
+      )}
     </div>
   );
 }

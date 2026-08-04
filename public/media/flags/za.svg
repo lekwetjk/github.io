@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="36" height="24" viewBox="0 0 36 24" role="img" aria-labelledby="title desc">
+  <title id="title">Flaga RPA</title>
+  <desc id="desc">Uproszczona flaga Republiki Poludniowej Afryki</desc>
+  <rect width="36" height="24" fill="#002395"/>
+  <polygon points="0,0 36,0 14,12 36,24 0,24" fill="#de3831"/>
+  <polygon points="0,3 28,12 0,21 0,16 20,12 0,8" fill="#ffffff"/>
+  <polygon points="0,5 22,12 0,19 0,15 16,12 0,9" fill="#007a4d"/>
+  <polygon points="0,0 10,6 10,18 0,24" fill="#000000"/>
+  <polygon points="0,2 12,9 12,15 0,22" fill="#ffb612"/>
+  <polygon points="0,4 10,10 10,14 0,20" fill="#000000"/>
+</svg>

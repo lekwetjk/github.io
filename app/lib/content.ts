@@ -57,13 +57,86 @@ function normalizePreviewText(value: string) {
     .trim();
 }
 
+const navigationMarkers = [
+  "O KRDIG",
+  "O NAS",
+  "STATUT",
+  "ZARZĄD I RADA IZBY",
+  "KOMISJE",
+  "CZŁONKOSTWO",
+  "WYDARZENIA",
+  "AKTUALNOŚCI",
+  "KONTAKT",
+  "POLITYKA PRYWATNOŚCI",
+  "POLITYKA COOKIES",
+  "TA STRONA KORZYSTA Z CIASTECZEK",
+];
+
+function normalizeLine(value: string) {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function hasNavigationLeak(paragraphs: string[]) {
+  const firstParagraphs = paragraphs.slice(0, 80).map((line) =>
+    normalizeLine(line).toLocaleUpperCase("pl"),
+  );
+
+  let markerHits = 0;
+  for (const line of firstParagraphs) {
+    for (const marker of navigationMarkers) {
+      if (line.includes(marker)) {
+        markerHits += 1;
+        break;
+      }
+    }
+  }
+
+  return markerHits >= 8;
+}
+
+function hasArchiveLeak(links: ContentLink[]) {
+  const readMoreCount = links.filter((link) =>
+    /czytaj\s+dalej/i.test(link.label),
+  ).length;
+  return readMoreCount >= 25;
+}
+
+function sanitizeNewsPost(post: NewsPost): NewsPost {
+  const normalizedParagraphs = post.paragraphs
+    .map(normalizeLine)
+    .filter(Boolean);
+
+  const looksCorrupted =
+    normalizedParagraphs.length > 220 ||
+    post.links.length > 350 ||
+    hasNavigationLeak(normalizedParagraphs) ||
+    hasArchiveLeak(post.links);
+
+  if (!looksCorrupted) {
+    return post;
+  }
+
+  return {
+    ...post,
+    paragraphs: [
+      "Treść tej aktualności została automatycznie oczyszczona, ponieważ wykryto uszkodzony zrzut z elementami nawigacji lub archiwum.",
+      "Skorzystaj z odnośnika do oryginalnego materiału źródłowego, aby zobaczyć pełną i bieżącą treść.",
+    ],
+    links: [],
+  };
+}
+
 export const knowledgePages = content.pages.map((page) => ({
   ...page,
+  title:
+    page.slug === "czlonkowie"
+      ? page.title.replace(/KRDIG/g, "KRD-IG")
+      : page.title,
   excerpt: normalizePreviewText(page.excerpt),
 }));
 
 export const newsPosts = content.posts.map((post) => ({
-  ...post,
+  ...sanitizeNewsPost(post),
   excerpt: normalizePreviewText(post.excerpt),
 }));
 

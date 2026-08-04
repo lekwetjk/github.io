@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="36" height="24" viewBox="0 0 36 24" role="img" aria-labelledby="title desc">
+  <title id="title">Flaga Singapuru</title>
+  <desc id="desc">Czerwony i bialy pas z polksiezycem i gwiazdami</desc>
+  <rect width="36" height="12" fill="#ef3340"/>
+  <rect y="12" width="36" height="12" fill="#ffffff"/>
+  <circle cx="8.8" cy="6.4" r="4.2" fill="#ffffff"/>
+  <circle cx="10.1" cy="6.4" r="3.4" fill="#ef3340"/>
+  <circle cx="13.6" cy="4.1" r="0.6" fill="#ffffff"/>
+  <circle cx="15" cy="5.3" r="0.6" fill="#ffffff"/>
+  <circle cx="15" cy="7.4" r="0.6" fill="#ffffff"/>
+  <circle cx="13.6" cy="8.6" r="0.6" fill="#ffffff"/>
+  <circle cx="12" cy="6.4" r="0.6" fill="#ffffff"/>
+</svg>

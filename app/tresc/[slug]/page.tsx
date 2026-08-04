@@ -84,11 +84,14 @@ export default async function ContentDetailPage({
     );
   }
 
-  const image = page.images.find(
-    (url) =>
-      !/-480x|-300x|-980x/.test(url) &&
-      /\.(jpe?g|png|webp)(?:\?|$)/i.test(url),
-  );
+  const image =
+    slug === "czlonkowie"
+      ? "/media/team-pictogram.svg"
+      : page.images.find(
+          (url) =>
+            !/-480x|-300x|-980x/.test(url) &&
+            /\.(jpe?g|png|webp)(?:\?|$)/i.test(url),
+        );
 
   return (
     <PageShell>

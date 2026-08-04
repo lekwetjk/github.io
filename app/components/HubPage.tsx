@@ -110,7 +110,7 @@ export function HubPage({
           </div>
           <div className="directory-grid">
             {pages.map((page, index) => (
-              <article className="directory-card" key={page.slug}>
+              <a className="directory-card" href={`/tresc/${page.slug}`} key={page.slug}>
                 <span className="card-index">
                   {String(index + 1).padStart(2, "0")}
                 </span>
@@ -125,10 +125,10 @@ export function HubPage({
                     )}
                   </p>
                 )}
-                <a href={`/tresc/${page.slug}`}>
-                  Przejdź do informacji <Arrow />
-                </a>
-              </article>
+                <span className="directory-card-arrow" aria-hidden="true">
+                  <Arrow />
+                </span>
+              </a>
             ))}
           </div>
         </div>
