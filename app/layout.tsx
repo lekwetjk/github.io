@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://krd-ig.com.pl";
+const defaultSiteUrl = "https://krd-ig.com.pl";
+const envSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+const siteUrl = envSiteUrl && envSiteUrl.length > 0 ? envSiteUrl : defaultSiteUrl;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
