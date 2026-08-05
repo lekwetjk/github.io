@@ -3,7 +3,16 @@ import "./globals.css";
 
 const defaultSiteUrl = "https://krd-ig.com.pl";
 const envSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-const siteUrl = envSiteUrl && envSiteUrl.length > 0 ? envSiteUrl : defaultSiteUrl;
+
+function normalizeSiteUrl(value?: string) {
+  if (!value || value.length === 0) {
+    return defaultSiteUrl;
+  }
+
+  return /^[a-z][a-z\d+.-]*:\/\//i.test(value) ? value : `https://${value}`;
+}
+
+const siteUrl = normalizeSiteUrl(envSiteUrl);
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
