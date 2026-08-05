@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { withBasePath } from "../lib/basePath";
 
 type ArchivePost = {
   slug: string;
@@ -105,7 +106,7 @@ export function NewsArchive({ posts }: { posts: ArchivePost[] }) {
         {filtered.slice(0, limit).map((post) => (
           <article className="archive-card" key={post.slug}>
             {post.image ? (
-              <img src={post.image} alt="" loading="lazy" />
+              <img src={withBasePath(post.image)} alt="" loading="lazy" />
             ) : (
               <div className="archive-placeholder" aria-hidden="true">
                 KRD-IG
@@ -117,7 +118,7 @@ export function NewsArchive({ posts }: { posts: ArchivePost[] }) {
                 <span>{post.categories[0] || "Aktualności"}</span>
               </div>
               <h2>
-                <a href={`/aktualnosci/${post.slug}`}>{post.title}</a>
+                <a href={withBasePath(`/aktualnosci/${post.slug}`)}>{post.title}</a>
               </h2>
               <p>{post.excerpt}</p>
             </div>

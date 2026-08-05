@@ -1,5 +1,6 @@
 import { ArticleBody } from "../../components/ArticleBody";
 import { PageShell } from "../../components/SiteChrome";
+import { withBasePath } from "../../lib/basePath";
 import { formatDate, newsPosts, postBySlug } from "../../lib/content";
 
 export function generateStaticParams() {
@@ -20,7 +21,7 @@ export default async function NewsDetailPage({
         <section className="simple-hero">
           <div className="shell">
             <h1>Nie znaleziono materiału</h1>
-            <a href="/aktualnosci">Wróć do archiwum</a>
+            <a href={withBasePath("/aktualnosci")}>Wróć do archiwum</a>
           </div>
         </section>
       </PageShell>
@@ -38,7 +39,7 @@ export default async function NewsDetailPage({
             <h1>{post.title}</h1>
             {post.excerpt && <p>{post.excerpt}</p>}
           </div>
-          {post.image && <img src={post.image} alt="" />}
+          {post.image && <img src={withBasePath(post.image)} alt="" />}
         </div>
       </section>
       <ArticleBody

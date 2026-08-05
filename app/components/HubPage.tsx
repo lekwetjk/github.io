@@ -1,4 +1,5 @@
 import { pagesFor } from "../lib/content";
+import { withBasePath } from "../lib/basePath";
 import { Arrow, PageShell } from "./SiteChrome";
 
 type HubPageProps = {
@@ -80,7 +81,7 @@ export function HubPage({
             <p className="subpage-lead">{lead}</p>
           </div>
           <div className="subpage-image">
-            <img src={image} alt={imageAlt} />
+            <img src={withBasePath(image)} alt={imageAlt} />
           </div>
         </div>
       </section>
@@ -110,7 +111,7 @@ export function HubPage({
           </div>
           <div className="directory-grid">
             {pages.map((page, index) => (
-              <a className="directory-card" href={`/tresc/${page.slug}`} key={page.slug}>
+              <a className="directory-card" href={withBasePath(`/tresc/${page.slug}`)} key={page.slug}>
                 <span className="card-index">
                   {String(index + 1).padStart(2, "0")}
                 </span>

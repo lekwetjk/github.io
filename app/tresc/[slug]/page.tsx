@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ArticleBody } from "../../components/ArticleBody";
 import { PageShell } from "../../components/SiteChrome";
+import { withBasePath } from "../../lib/basePath";
 import { knowledgePages, pageBySlug } from "../../lib/content";
 
 export function generateStaticParams() {
@@ -77,7 +78,7 @@ export default async function ContentDetailPage({
         <section className="simple-hero">
           <div className="shell">
             <h1>Nie znaleziono informacji</h1>
-            <a href="/baza-wiedzy">Wróć do bazy wiedzy</a>
+            <a href={withBasePath("/baza-wiedzy")}>Wróć do bazy wiedzy</a>
           </div>
         </section>
       </PageShell>
@@ -102,7 +103,7 @@ export default async function ContentDetailPage({
             <h1>{page.title}</h1>
             {leadText && <p>{leadText}</p>}
           </div>
-          {image && <img src={image} alt="" />}
+          {image && <img src={withBasePath(image)} alt="" />}
         </div>
       </section>
       <ArticleBody

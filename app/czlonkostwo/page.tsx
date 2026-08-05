@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { withBasePath } from "../lib/basePath";
 import { pagesFor } from "../lib/content";
 import { Arrow, PageShell } from "../components/SiteChrome";
 
@@ -53,11 +54,11 @@ export default function MembershipPage() {
               sektora drobiarskiego — od hodowli i wylęgu po przetwórstwo,
               pasze, naukę i usługi wspierające produkcję.
             </p>
-            <a className="button button-white" href="/kontakt">
+            <a className="button button-white" href={withBasePath("/kontakt")}>
               Skontaktuj się z Izbą <Arrow />
             </a>
           </div>
-          <img src="/media/white-hen.jpg" alt="Biała kura" />
+          <img src={withBasePath("/media/white-hen.jpg")} alt="Biała kura" />
         </div>
       </section>
       <section className="benefit-section">
@@ -82,7 +83,7 @@ export default function MembershipPage() {
             <article className="directory-card" key={page.slug}>
               <h3>{page.title}</h3>
               <p>{page.excerpt}</p>
-              <a href={`/tresc/${page.slug}`}>
+              <a href={withBasePath(`/tresc/${page.slug}`)}>
                 Szczegóły <Arrow />
               </a>
             </article>

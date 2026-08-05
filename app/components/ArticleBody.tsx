@@ -1,4 +1,5 @@
 import type { ContentLink } from "../lib/content";
+import { withBasePath } from "../lib/basePath";
 import { Arrow } from "./SiteChrome";
 
 function looksLikeHeading(value: string) {
@@ -321,7 +322,7 @@ export function ArticleBody({
                   key={partner.name}
                 >
                   <div className="partner-card-media">
-                    <img src={partner.logo} alt={`${partner.name} logo`} />
+                    <img src={withBasePath(partner.logo)} alt={`${partner.name} logo`} />
                   </div>
                   <div className="partner-card-content">
                     <span className="partner-card-badge">Partner branżowy</span>
@@ -479,7 +480,7 @@ export function ArticleBody({
                 <h2 className="third-countries-country-heading" key={`${index}-${normalized}`}>
                   <img
                     className="third-countries-flag"
-                    src={countryFlag.src}
+                    src={withBasePath(countryFlag.src)}
                     alt={countryFlag.alt}
                     width={36}
                     height={24}

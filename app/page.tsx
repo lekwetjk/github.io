@@ -1,4 +1,5 @@
 import { isTenderPost, knowledgePages, newsPosts } from "./lib/content";
+import { withBasePath } from "./lib/basePath";
 import { Arrow, PageShell } from "./components/SiteChrome";
 
 const latestNews = newsPosts.filter((post) => !isTenderPost(post)).slice(0, 4);
@@ -113,10 +114,10 @@ export default function Home() {
               polskim drobiu.
             </p>
             <div className="hero-actions">
-              <a className="button button-primary" href="/o-izbie">
+              <a className="button button-primary" href={withBasePath("/o-izbie")}>
                 Poznaj KRD-IG <Arrow />
               </a>
-              <a className="button button-quiet" href="/aktualnosci">
+              <a className="button button-quiet" href={withBasePath("/aktualnosci")}>
                 Najnowsze informacje
               </a>
             </div>
@@ -195,7 +196,7 @@ export default function Home() {
           </div>
           <div className="pathway-grid">
             {pathways.map((pathway) => (
-              <a href={pathway.href} className="pathway-card" key={pathway.href}>
+              <a href={withBasePath(pathway.href)} className="pathway-card" key={pathway.href}>
                 <span>{pathway.index}</span>
                 <h3>{pathway.title}</h3>
                 <p>{pathway.text}</p>
@@ -209,7 +210,7 @@ export default function Home() {
       <section className="photo-story">
         <div className="shell photo-story-grid">
           <img
-            src="/media/meat-drumsticks.webp"
+            src={withBasePath("/media/meat-drumsticks.webp")}
             alt="Elementy mięsa drobiowego z przyprawami"
           />
           <div className="photo-story-copy">
@@ -220,12 +221,12 @@ export default function Home() {
               systemy jakości, troskę o dobrostan oraz konkurencyjność na
               rynkach zagranicznych.
             </p>
-            <a className="text-link-light" href="/zrownowazony-rozwoj">
+            <a className="text-link-light" href={withBasePath("/zrownowazony-rozwoj")}>
               Poznaj standardy produkcji <Arrow />
             </a>
           </div>
           <img
-            src="/media/poultry-close.webp"
+            src={withBasePath("/media/poultry-close.webp")}
             alt="Biały kurczak w gospodarstwie"
           />
         </div>
@@ -238,14 +239,14 @@ export default function Home() {
               <p className="eyebrow">Aktualności</p>
               <h2>W centrum wydarzeń</h2>
             </div>
-            <a className="button button-outline" href="/aktualnosci">
+            <a className="button button-outline" href={withBasePath("/aktualnosci")}>
               Pełne archiwum <Arrow />
             </a>
           </div>
           <div className="latest-grid">
             {latestNews.map((post) => (
               <article className="latest-card" key={post.slug}>
-                {post.image && <img src={post.image} alt="" loading="lazy" />}
+                {post.image && <img src={withBasePath(post.image)} alt="" loading="lazy" />}
                 <div>
                   <p className="latest-meta">
                     {new Intl.DateTimeFormat("pl-PL", {
@@ -256,7 +257,7 @@ export default function Home() {
                   </p>
                   <h3>{post.title}</h3>
                   <p>{post.excerpt}</p>
-                  <a href={`/aktualnosci/${post.slug}`}>
+                  <a href={withBasePath(`/aktualnosci/${post.slug}`)}>
                     Czytaj dalej <Arrow />
                   </a>
                 </div>
@@ -269,10 +270,10 @@ export default function Home() {
       <section className="knowledge-feature">
         <div className="shell knowledge-feature-grid">
           <div className="knowledge-gallery">
-            <img src="/media/meat-duck.webp" alt="Świeże mięso kacze" />
-            <img src="/media/meat-fillet.webp" alt="Filet drobiowy" />
+            <img src={withBasePath("/media/meat-duck.webp")} alt="Świeże mięso kacze" />
+            <img src={withBasePath("/media/meat-fillet.webp")} alt="Filet drobiowy" />
             <img
-              src="/media/healthy-poultry.webp"
+              src={withBasePath("/media/healthy-poultry.webp")}
               alt="Mięso drobiowe i świeże składniki"
             />
           </div>
@@ -284,7 +285,7 @@ export default function Home() {
               komunikatów, wydarzeń, stanowisk, kampanii i zapytań ofertowych
               dostępnych w obecnej witrynie.
             </p>
-            <a className="button button-primary" href="/baza-wiedzy">
+            <a className="button button-primary" href={withBasePath("/baza-wiedzy")}>
               Otwórz bazę wiedzy <Arrow />
             </a>
           </div>
@@ -302,7 +303,7 @@ export default function Home() {
               Dołącz do przedsiębiorców, którzy wspólnie kształtują przyszłość
               polskiego sektora drobiarskiego.
             </p>
-            <a className="button button-white" href="/czlonkostwo">
+            <a className="button button-white" href={withBasePath("/czlonkostwo")}>
               Poznaj korzyści <Arrow />
             </a>
           </div>

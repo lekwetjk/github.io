@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { withBasePath } from "../lib/basePath";
 import { knowledgePages, newsPosts } from "../lib/content";
 import { Arrow, PageShell } from "../components/SiteChrome";
 
@@ -58,7 +59,7 @@ export default function DocumentsPage() {
           <div>
             <h2>Dokumenty tematyczne</h2>
             {documentPages.map((page) => (
-              <a href={`/tresc/${page.slug}`} key={page.slug}>
+              <a href={withBasePath(`/tresc/${page.slug}`)} key={page.slug}>
                 <span>
                   <small>{page.section}</small>
                   {page.title}
@@ -70,7 +71,7 @@ export default function DocumentsPage() {
           <div>
             <h2>Najnowsze stanowiska</h2>
             {statements.map((post) => (
-              <a href={`/aktualnosci/${post.slug}`} key={post.slug}>
+              <a href={withBasePath(`/aktualnosci/${post.slug}`)} key={post.slug}>
                 <span>
                   <small>{new Date(post.date).getFullYear()}</small>
                   {post.title}
@@ -82,7 +83,7 @@ export default function DocumentsPage() {
           <div>
             <h2>Zapytania ofertowe</h2>
             {tenders.map((post) => (
-              <a href={`/aktualnosci/${post.slug}`} key={post.slug}>
+              <a href={withBasePath(`/aktualnosci/${post.slug}`)} key={post.slug}>
                 <span>
                   <small>{new Date(post.date).getFullYear()}</small>
                   {post.title}

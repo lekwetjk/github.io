@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { knowledgePages } from "../lib/content";
+import { withBasePath } from "../lib/basePath";
 import { Arrow, PageShell } from "../components/SiteChrome";
 
 export const metadata: Metadata = {
@@ -61,7 +62,7 @@ export default function KnowledgeBasePage() {
                 </div>
                 <div className="library-grid">
                   {pages.map((page) => (
-                    <a href={`/tresc/${page.slug}`} key={page.slug} className="library-card">
+                    <a href={withBasePath(`/tresc/${page.slug}`)} key={page.slug} className="library-card">
                       <span className="library-card-index">{page.section}</span>
                       <h3>{page.title}</h3>
                       <p>{page.excerpt}</p>
