@@ -18,7 +18,7 @@ export function ExternalFavicon({ href, title, className, logoSrc }: ExternalFav
       const url = new URL(href);
       const host = url.hostname;
 
-      return `/api/favicon?domain=${encodeURIComponent(host)}`;
+      return `https://icons.duckduckgo.com/ip3/${encodeURIComponent(host)}.ico`;
     } catch {
       return "";
     }
