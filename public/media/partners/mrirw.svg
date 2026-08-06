@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="MRiRW">
+  <rect width="256" height="256" rx="40" fill="#f1f6ff"/>
+  <rect x="16" y="16" width="224" height="224" rx="32" fill="#ffffff" stroke="#b9c9e6" stroke-width="4"/>
+  <path d="M46 178V78h28l26 37 26-37h27v100h-30v-52l-21 29h-5l-21-29v52H46zm116 0V78h30v100h-30z" fill="#1e4f88"/>
+  <text x="128" y="214" text-anchor="middle" font-family="Aptos, Segoe UI, Arial, sans-serif" font-size="24" font-weight="800" fill="#1e4f88">MRiRW</text>
+</svg>

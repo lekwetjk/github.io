@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="ARiMR">
+  <rect width="256" height="256" rx="40" fill="#edf8f0"/>
+  <rect x="16" y="16" width="224" height="224" rx="32" fill="#ffffff" stroke="#b9d9c2" stroke-width="4"/>
+  <path d="M52 178l34-100h31l34 100h-30l-6-21H88l-6 21H52zm43-44h13l-6-22-7 22zm62 44V78h29l20 33 20-33h28v100h-30v-46l-18 29h-2l-18-29v46h-29z" fill="#2d7a3f"/>
+  <text x="128" y="214" text-anchor="middle" font-family="Aptos, Segoe UI, Arial, sans-serif" font-size="24" font-weight="800" fill="#2d7a3f">ARIMR</text>
+</svg>

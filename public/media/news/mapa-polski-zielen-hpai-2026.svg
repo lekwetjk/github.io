@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">Mapa Polski - status HPAI 2026</title>
+  <desc id="desc">Konturowa mapa Polski w odcieniach zieleni.</desc>
+
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f3fbf5"/>
+      <stop offset="100%" stop-color="#e7f7ea"/>
+    </linearGradient>
+    <linearGradient id="mapFill" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7ccf9a"/>
+      <stop offset="100%" stop-color="#3f8f63"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#1f5f43" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="900" fill="url(#bg)"/>
+
+  <g transform="translate(120 70)" filter="url(#shadow)">
+    <path
+      d="M232 186 L300 147 L393 132 L473 152 L541 129 L615 142 L684 126 L760 153 L821 202 L872 261 L897 329 L889 396 L922 463 L899 535 L849 599 L780 640 L730 703 L651 729 L579 712 L508 744 L424 731 L356 697 L286 678 L228 626 L188 553 L152 502 L142 430 L118 366 L136 296 L181 245 Z"
+      fill="url(#mapFill)"
+      stroke="#1f5f43"
+      stroke-width="7"
+      stroke-linejoin="round"
+    />
+
+    <g stroke="#2b6f50" stroke-width="3" opacity="0.45" fill="none">
+      <path d="M220 300 L360 260 L505 276 L664 253 L806 286"/>
+      <path d="M198 408 L336 376 L487 392 L640 370 L826 402"/>
+      <path d="M214 516 L365 486 L526 500 L689 480 L851 516"/>
+      <path d="M286 660 L421 620 L570 636 L716 618"/>
+      <path d="M336 214 L308 356 L278 508 L334 682"/>
+      <path d="M468 160 L450 300 L430 450 L462 710"/>
+      <path d="M604 145 L588 292 L566 446 L596 722"/>
+      <path d="M736 156 L720 300 L700 452 L724 671"/>
+      <path d="M836 236 L798 386 L776 542"/>
+    </g>
+
+    <circle cx="548" cy="430" r="14" fill="#1f5f43"/>
+    <text x="575" y="437" font-family="Aptos, Segoe UI, Arial, sans-serif" font-size="30" fill="#1f5f43" font-weight="700">Polska</text>
+  </g>
+
+  <text x="600" y="845" text-anchor="middle" font-family="Aptos, Segoe UI, Arial, sans-serif" font-size="30" fill="#2b6f50" font-weight="700">
+    Status kraju wolnego od HPAI - 28.07.2026
+  </text>
+</svg>

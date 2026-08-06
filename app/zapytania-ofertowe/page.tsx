@@ -54,7 +54,7 @@ export default function TenderRequestsPage() {
         </div>
       </section>
       <section className="archive-section">
-        <div className="shell">
+        <div className="shell tender-archive">
           <NewsArchive posts={archive} />
         </div>
       </section>

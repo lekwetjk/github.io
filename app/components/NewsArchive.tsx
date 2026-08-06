@@ -106,7 +106,16 @@ export function NewsArchive({ posts }: { posts: ArchivePost[] }) {
         {filtered.slice(0, limit).map((post) => (
           <article className="archive-card" key={post.slug}>
             {post.image ? (
-              <img src={withBasePath(post.image)} alt="" loading="lazy" />
+              <img
+                src={withBasePath(post.image)}
+                alt=""
+                loading="lazy"
+                className={
+                  post.slug === "polska-odzyskala-status-kraju-wolnego-od-grypy-ptakow-2026"
+                    ? "archive-image-contain"
+                    : undefined
+                }
+              />
             ) : (
               <div className="archive-placeholder" aria-hidden="true">
                 KRD-IG

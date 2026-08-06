@@ -28,6 +28,7 @@ export async function generateMetadata({
     page.excerpt.trim() ||
     `Informacje o ${page.title} z sekcji ${page.section} w bazie wiedzy KRD-IG.`;
   const canonicalUrl = `https://krd-ig.com.pl/tresc/${page.slug}`;
+  const socialImage = slug === "wazne-linki" ? "/media/wazne-linki-hero.png" : undefined;
 
   return {
     title,
@@ -49,11 +50,20 @@ export async function generateMetadata({
       url: canonicalUrl,
       type: "article",
       siteName: "KRD-IG",
+      images: socialImage
+        ? [
+            {
+              url: socialImage,
+              alt: "Ważne linki - KRD-IG",
+            },
+          ]
+        : undefined,
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      images: socialImage ? [socialImage] : undefined,
     },
   };
 }
@@ -70,6 +80,10 @@ export default async function ContentDetailPage({
       ? "Informacja o Krajowej Radzie Drobiarstwa – Izbie Gospodarczej w Warszawie. Krajowa Rada Drobiarstwa istnieje od 1991 roku. Od 11 marca 1998r. Krajowa Rada Drobiarstwa posiada statut Izby Gospodarczej. Aktualnie do KRD-IG należy ponad 100 podmiotów gospodarczych."
       : slug === "komisje"
         ? "W Krajowej Radzie Drobiarstwa – Izbie Gospodarczej działa dziewięć komisji branżowych."
+      : slug === "zarzad-i-rada-izby"
+        ? "Krajowa Rada Drobiarstwa - Izba Gospodarcza jest organizacją samorządu gospodarczego, reprezentującą interesy gospodarcze zrzeszonych w niej przedsiębiorców, w szczególności wobec organów władzy publicznej. Organami Izby są: Walne Zgromadzenie, Rada Izby, Zarząd Izby, Komisja Rewizyjna, Komisja Rozjemcza."
+      : slug === "dane-kontaktowe"
+        ? "KRD-IG wykonuje kluczowe dla branży drobiarskiej zadania z zakresu hodowli i oceny drobiu. Za realizację zadań związanych z kompetencjami Izby w tym zakresie odpowiada Dział Hodowli i Oceny Drobiu z siedzibą w Poznaniu. Poniżej dane kontaktowe do Specjalistów Działu, któego Kierownikiem jest dr. inż Eugeniusz Wencek."
       : page?.excerpt;
 
   if (!page) {
@@ -88,11 +102,21 @@ export default async function ContentDetailPage({
   const image =
     slug === "czlonkowie"
       ? "/media/team-pictogram.svg"
+      : slug === "wazne-linki"
+        ? "/media/wazne-linki-hero.png"
       : page.images.find(
           (url) =>
             !/-480x|-300x|-980x/.test(url) &&
             /\.(jpe?g|png|webp)(?:\?|$)/i.test(url),
         );
+  const displayTitle =
+    slug === "wazne-linki"
+      ? "Ważne linki"
+      : page.title;
+  const wazneLinkiSubtitle =
+    "to szybki dostęp do najważniejszych linków stron i portali internetowych w obszarze rolnictwa i sektora drobiarskiego";
+  const shouldUseWideLead = slug === "zarzad-i-rada-izby";
+  const shouldShowLeadText = Boolean(leadText) && slug !== "wazne-linki";
 
   return (
     <PageShell>
@@ -100,8 +124,22 @@ export default async function ContentDetailPage({
         <div className="shell article-hero-grid">
           <div>
             <p className="article-kicker">{page.section}</p>
-            <h1>{page.title}</h1>
-            {leadText && <p>{leadText}</p>}
+            <h1 className={slug === "wazne-linki" ? "article-title-wazne-linki" : undefined}>
+              {slug === "wazne-linki" ? (
+                <>
+                  {displayTitle}
+                  <br />
+                  <span className="article-title-wazne-linki-subline">{wazneLinkiSubtitle}</span>
+                </>
+              ) : (
+                displayTitle
+              )}
+            </h1>
+            {shouldShowLeadText && (
+              <p className={shouldUseWideLead ? "article-lead article-lead-full" : "article-lead"}>
+                {leadText}
+              </p>
+            )}
           </div>
           {image && <img src={withBasePath(image)} alt="" />}
         </div>

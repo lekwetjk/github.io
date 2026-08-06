@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="PPR">
+  <rect width="256" height="256" rx="40" fill="#eef7ff"/>
+  <rect x="16" y="16" width="224" height="224" rx="32" fill="#ffffff" stroke="#bfd6ec" stroke-width="4"/>
+  <path d="M56 178V78h50c25 0 39 12 39 33s-14 33-39 33H86v34H56zm30-58h16c9 0 13-3 13-9s-4-9-13-9H86v18zm66 58V78h49c24 0 39 12 39 33 0 14-7 24-20 29l26 38h-35l-20-32h-9v32h-30zm30-55h16c8 0 13-4 13-10s-5-10-13-10h-16v20z" fill="#2b5f8f"/>
+  <text x="128" y="214" text-anchor="middle" font-family="Aptos, Segoe UI, Arial, sans-serif" font-size="24" font-weight="800" fill="#2b5f8f">PPR</text>
+</svg>

@@ -1,6 +1,8 @@
 import type { ContentLink } from "../lib/content";
 import { withBasePath } from "../lib/basePath";
 import { Arrow } from "./SiteChrome";
+import { MembershipSignupForm } from "./MembershipSignupForm";
+import { ExternalFavicon } from "./ExternalFavicon";
 
 function looksLikeHeading(value: string) {
   return (
@@ -10,12 +12,40 @@ function looksLikeHeading(value: string) {
   );
 }
 
+function looksLikeAllCapsHeading(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.length < 3) {
+    return false;
+  }
+  if (/\d/.test(trimmed)) {
+    return false;
+  }
+  const lettersOnly = trimmed.replace(/[^A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż]/g, "");
+  if (lettersOnly.length < 3) {
+    return false;
+  }
+  return lettersOnly === lettersOnly.toLocaleUpperCase("pl");
+}
+
 function stripEmailFromContact(contact: string) {
   return contact
     .replace(/\s*(?:·\s*)?([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})/g, "")
     .replace(/\s*·\s*$/g, "")
     .replace(/\s{2,}/g, " ")
     .trim();
+}
+
+function renderAddress(address: string) {
+  return address
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line, index) => <p key={`${line}-${index}`}>{line}</p>);
+}
+
+function renderContactLine(contact: string) {
+  const cleanedContact = stripEmailFromContact(contact);
+  return cleanedContact ? <p>{cleanedContact}</p> : null;
 }
 
 type BoardPerson = {
@@ -38,16 +68,16 @@ const boardMembers: BoardPerson[] = [
   {
     name: "Tomasz Szulc",
     role: "Wiceprezes Zarządu KRD-IG",
-    company: "Krajowa Rada Drobiarstwa – Izba Gospodarcza",
-    address: "ul. Powstańców 19, 86-050 Solec Kujawski",
+    company: "Członek Zarządu Drobex sp. z o.o.",
+    address: "Powstańców 19\n86-050 Solec Kujawski",
     contact: "sekretariat@drobex.com.pl",
     email: "sekretariat@drobex.com.pl",
   },
   {
     name: "Adam Sojka",
     role: "Wiceprezes Zarządu KRD-IG",
-    company: "Krajowa Rada Drobiarstwa – Izba Gospodarcza",
-    address: "ul. Sokołowka 154, 08-110 Siedlce",
+    company: "Prezes Zarządu Grupy Drosed „Drosed” S. A.",
+    address: "ul. Sokołowka 154\n08-110 Siedlce",
     contact: "sekretariat@drosed.com.pl",
     email: "sekretariat@drosed.com.pl",
   },
@@ -137,42 +167,42 @@ const partnerOrganisations = [
   {
     name: "AVEC",
     url: "https://avec-poultry.eu/",
-    logo: "https://krd-ig.com.pl/wp-content/uploads/2024/08/AVEC_logo-1.webp",
+    logo: "/media/partners/avec.svg",
     description:
       "Od 2005 roku KRD-IG reprezentuje polską branżę drobiarską w AVEC. Stowarzyszenie reprezentuje interesy europejskiej branży drobiowej i wypracowuje wspólne rozwiązania dla rynku drobiu w UE.",
   },
   {
     name: "UECBV",
     url: "https://uecbv.eu/",
-    logo: "https://uecbv.eu/UECBV2/OWS/Images/galerie/Logo_UECBV2.png",
+    logo: "/media/partners/uecbv.svg",
     description:
       "Europejska organizacja reprezentująca sektor hodowli i handlu żywcem oraz mięsem. UECBV zrzesza federacje z wielu krajów i reprezentuje tysiące firm oraz miejsc pracy.",
   },
   {
     name: "CLITRAVI",
     url: "https://www.clitravi.com/",
-    logo: "https://www.clitravi.com/wp-content/uploads/2017/10/logo_clitravi-1.png",
+    logo: "/media/partners/clitravi.svg",
     description:
       "Organizacja branżowa działająca od 1958 roku, reprezentująca interesy europejskiego przemysłu przetwórstwa mięsa w dialogu z instytucjami UE.",
   },
   {
     name: "IPC",
     url: "https://internationalpoultrycouncil.org/",
-    logo: "https://internationalpoultrycouncil.org/wp-content/uploads/2025/03/IPC-Logo-25.svg",
+    logo: "/media/partners/ipc.svg",
     description:
       "Międzynarodowa organizacja reprezentująca globalny sektor drobiu. IPC skupia ponad 75% światowej produkcji mięsa drobiowego i 90% globalnego handlu.",
   },
   {
     name: "WPSA",
     url: "https://www.wpsa.com/",
-    logo: "https://wpsa.com/wp-content/uploads/2024/05/Logo-WPSA.png",
+    logo: "/media/partners/wpsa.svg",
     description:
       "Światowa organizacja naukowa rozwijająca wiedzę o drobiarstwie i łącząca badaczy, edukatorów oraz praktyków branży od 1912 roku.",
   },
   {
     name: "ELPHA",
     url: "https://www.elpha.eu/",
-    logo: "https://static.wixstatic.com/media/7f1b0f_7bd70fff8a5f46c99f4ddbe17e351e9a%7Emv2.png/v1/fill/w_192%2Ch_192%2Clg_1%2Cusm_0.66_1.00_0.01/7f1b0f_7bd70fff8a5f46c99f4ddbe17e351e9a%7Emv2.png",
+    logo: "/media/partners/elpha.svg",
     description:
       "Europejskie stowarzyszenie reprezentujące cały łańcuch produkcji żywca i jaj wylęgowych w UE oraz wspierające konkurencyjną i zrównoważoną produkcję.",
   },
@@ -207,6 +237,48 @@ export function ArticleBody({
       ? links.find((link) => link.document)?.href ??
         "https://krd-ig.com.pl/krd_przewodnik_na-rynek-chinski-ok/"
       : undefined;
+  const dezinformacjaBriefingPdfHref =
+    "https://krd-ig.com.pl/wp-content/uploads/2026/04/Czerwona-kartka-dla-dezinformacji-i-kluczowe-wyzwania-rynkowe.pdf";
+  const ijharsAgreementUrlLabel =
+    "https://www.gov.pl/web/ijhars/wspolne-zasady-dla-rynku-miesa–ijhars-i-branza-wypracowaly-porozumienia";
+  const ijharsAgreementHref =
+    links.find((link) => link.label === ijharsAgreementUrlLabel)?.href ??
+    "https://www.gov.pl/web/ijhars/wspolne-zasady-dla-rynku-miesa--ijhars-i-branza-wypracowaly-porozumienia";
+  const dezinformacjaBriefingPhotos = [
+    {
+      src: "https://krd-ig.com.pl/wp-content/uploads/2026/04/WhatsApp-Image-2026-04-29-at-15.39.29-7-1024x768.jpeg",
+      alt: "Śniadanie prasowe KRD-IG - zdjęcie 1",
+    },
+    {
+      src: "https://krd-ig.com.pl/wp-content/uploads/2026/04/WhatsApp-Image-2026-04-29-at-15.39.29-4-1024x767.jpeg",
+      alt: "Śniadanie prasowe KRD-IG - zdjęcie 2",
+    },
+    {
+      src: "https://krd-ig.com.pl/wp-content/uploads/2026/04/WhatsApp-Image-2026-04-29-at-15.39.29-3-768x1024.jpeg",
+      alt: "Śniadanie prasowe KRD-IG - zdjęcie 3",
+    },
+    {
+      src: "https://krd-ig.com.pl/wp-content/uploads/2026/04/WhatsApp-Image-2026-04-29-at-15.39.29-1-819x1024.jpeg",
+      alt: "Śniadanie prasowe KRD-IG - zdjęcie 4",
+    },
+    {
+      src: "https://krd-ig.com.pl/wp-content/uploads/2026/04/WhatsApp-Image-2026-04-29-at-15.39.29-6-1024x767.jpeg",
+      alt: "Śniadanie prasowe KRD-IG - zdjęcie 5",
+    },
+  ];
+  const dezinformacjaBriefingLogos = [
+    {
+      src: "https://dobrydrob.pl/wp-content/uploads/2020/07/logo.png",
+      alt: "Logo Dobry Drob",
+      href: "https://dobrydrob.pl/",
+    },
+    {
+      src: "https://krd-ig.com.pl/wp-content/uploads/2025/07/logo_Fundusze-Promocji_kolor-1024x888.png",
+      alt: "Logo Fundusze Promocji",
+      href: "https://www.gov.pl/web/kowr/fundusz-promocji-miesa-drobiowego",
+      className: "news-logo-fundusze",
+    },
+  ];
 
   const visibleParagraphs =
     slug === "o-nas"
@@ -219,6 +291,70 @@ export function ArticleBody({
           "Musimy przekonywać krajowych i zagranicznych konsumentów do zwiększenia spożycia drobiu.",
         ]
       : paragraphs;
+
+  const isTenderLikeSlug =
+    !!slug &&
+    /(zapytanie-ofertowe|wybor-wykonawcy|zaproszenie-do-skladania-ofert|wyniki-postepowania|uniewaznienie)/.test(
+      slug,
+    );
+  const resolveArticleHref = (href: string) =>
+    /^https?:\/\//i.test(href) || href.startsWith("mailto:") || href.startsWith("tel:")
+      ? href
+      : withBasePath(href);
+  let tenderLinkCursor = 0;
+
+  const renderTenderLinkedText = (paragraph: string, keyPrefix: string) => {
+    if (!isTenderLikeSlug) {
+      return null;
+    }
+
+    const text = paragraph.trim();
+    if (!text) {
+      return null;
+    }
+
+    let chosenLink: ContentLink | null = null;
+    for (let index = tenderLinkCursor; index < links.length; index += 1) {
+      const candidate = links[index];
+      if (!candidate?.label) {
+        continue;
+      }
+      if (text.includes(candidate.label)) {
+        chosenLink = candidate;
+        tenderLinkCursor = index + 1;
+        break;
+      }
+    }
+
+    if (!chosenLink) {
+      return null;
+    }
+
+    const marker = "__KRD_LINK_MARKER__";
+    const markedText = text.replace(chosenLink.label, marker);
+    if (!markedText.includes(marker)) {
+      return null;
+    }
+
+    const [before, after = ""] = markedText.split(marker);
+    const anchor = (
+      <a className="inline-download-link" href={resolveArticleHref(chosenLink.href)}>
+        {chosenLink.label}
+      </a>
+    );
+
+    return {
+      hasLink: true,
+      node: (
+        <>
+          {before}
+          {anchor}
+          {after}
+        </>
+      ),
+      key: `${keyPrefix}-${chosenLink.href}-${chosenLink.label}`,
+    };
+  };
 
   if (slug === "zarzad-i-rada-izby") {
     return (
@@ -233,8 +369,8 @@ export function ArticleBody({
                   <h3>{member.name}</h3>
                   <p className="board-role">{member.role}</p>
                   <p>{member.company}</p>
-                  {member.address && <p>{member.address}</p>}
-                  {member.contact && <p>{stripEmailFromContact(member.contact)}</p>}
+                  {member.address && renderAddress(member.address)}
+                  {member.contact && renderContactLine(member.contact)}
                   {member.email && (
                     <a
                       className="board-email-link"
@@ -253,8 +389,8 @@ export function ArticleBody({
                   <h3>{member.name}</h3>
                   <p className="board-role">{member.role}</p>
                   <p>{member.company}</p>
-                  {member.address && <p>{member.address}</p>}
-                  {member.contact && <p>{stripEmailFromContact(member.contact)}</p>}
+                  {member.address && renderAddress(member.address)}
+                  {member.contact && renderContactLine(member.contact)}
                   {member.email && (
                     <a
                       className="board-email-link"
@@ -279,8 +415,8 @@ export function ArticleBody({
                   <h3>{member.name}</h3>
                   <p className="board-role">{member.role}</p>
                   <p>{member.company}</p>
-                  {member.address && <p>{member.address}</p>}
-                  {member.contact && <p>{stripEmailFromContact(member.contact)}</p>}
+                  {member.address && renderAddress(member.address)}
+                  {member.contact && renderContactLine(member.contact)}
                   {member.email && (
                     <a
                       className="board-email-link"
@@ -355,6 +491,700 @@ export function ArticleBody({
               </article>
             ))}
           </div>
+          <a className="source-link source-link-inline" href={resolvedSource}>
+            Zobacz materiał na obecnej stronie KRD-IG <Arrow />
+          </a>
+        </article>
+      </div>
+    );
+  }
+
+  if (slug === "wstawienia") {
+    const columnLabels = [
+      "Styczeń",
+      "Luty",
+      "Marzec",
+      "I kwartał",
+      "Dynamika",
+      "Kwiecień",
+      "Maj",
+      "Czerwiec",
+      "II kwartał",
+      "Dynamika",
+      "I półrocze",
+      "Dynamika",
+      "Lipiec",
+      "Sierpień",
+      "Wrzesień",
+      "III kwartał",
+      "Dynamika",
+      "Październik",
+      "Listopad",
+      "Grudzień",
+      "IV kwartał",
+      "Dynamika",
+      "II półrocze",
+      "Dynamika",
+      "Rok",
+      "Dynamika",
+    ];
+
+    const rowsStartIndex = visibleParagraphs.findIndex((paragraph) =>
+      /^\d{4}$/.test(paragraph.trim()),
+    );
+    const lastEditIndex = visibleParagraphs.findIndex((paragraph) =>
+      /^Ostatnia edycja:/i.test(paragraph.trim()),
+    );
+    const opracowanieIndex = visibleParagraphs.findIndex((paragraph) =>
+      /^Opracowanie:/i.test(paragraph.trim()),
+    );
+
+    const dataEndIndex =
+      (lastEditIndex !== -1 ? lastEditIndex : opracowanieIndex !== -1 ? opracowanieIndex : visibleParagraphs.length);
+
+    const tableRows: Array<{ year: string; values: string[] }> = [];
+    if (rowsStartIndex !== -1) {
+      let index = rowsStartIndex;
+      while (index < dataEndIndex) {
+        const current = visibleParagraphs[index]?.trim();
+        if (!current) {
+          index += 1;
+          continue;
+        }
+
+        if (!/^\d{4}$/.test(current)) {
+          index += 1;
+          continue;
+        }
+
+        const year = current;
+        index += 1;
+        const values: string[] = [];
+
+        while (index < dataEndIndex) {
+          const value = visibleParagraphs[index]?.trim();
+          if (!value) {
+            index += 1;
+            continue;
+          }
+          if (/^\d{4}$/.test(value)) {
+            break;
+          }
+          values.push(value);
+          index += 1;
+        }
+
+        tableRows.push({ year, values });
+      }
+    }
+
+    const parsePolishNumber = (value: string) => {
+      const cleaned = value.trim();
+      if (!cleaned || cleaned === "-" || cleaned === "—") {
+        return null;
+      }
+      const normalized = cleaned.replace(/\*/g, "").replace(/\s+/g, "").replace(/,/g, ".");
+      if (!normalized) {
+        return null;
+      }
+      const parsed = Number(normalized);
+      return Number.isFinite(parsed) ? parsed : null;
+    };
+    const parsePolishPercent = (value: string) => {
+      const cleaned = value.trim();
+      if (!cleaned || !cleaned.includes("%")) {
+        return null;
+      }
+      const normalized = cleaned.replace(/%/g, "").replace(/\s+/g, "").replace(/,/g, ".");
+      const parsed = Number(normalized);
+      return Number.isFinite(parsed) ? parsed : null;
+    };
+
+    const formatPolishInteger = (value: number) =>
+      Math.round(value).toLocaleString("pl-PL").replace(/\u00a0/g, " ");
+    const formatDynamicsPercent = (current: number, previous: number) =>
+      `${((current / previous) * 100).toFixed(1).replace(".", ",")}%`;
+
+    const rowsToFix = new Set(["2020", "2022", "2024", "2025"]);
+    const percentColumns = [5, 10, 12, 17, 22, 24, 26];
+    const monthlyIndexes = [0, 1, 2, 5, 6, 7, 12, 13, 14, 17, 18, 19];
+
+    const alignedTableRows = tableRows.map((row) => {
+      if (!rowsToFix.has(row.year)) {
+        return row;
+      }
+
+      const values = [...row.values];
+
+      for (const percentColumn of percentColumns) {
+        if (values.length >= 26 && values[percentColumn - 1]?.includes("%")) {
+          continue;
+        }
+
+        const current = values[percentColumn - 1]?.trim() ?? "";
+        if (current && !current.includes("%")) {
+          values.splice(percentColumn - 1, 0, "");
+        }
+      }
+
+      while (values.length < 26) {
+        values.push("");
+      }
+      if (values.length > 26) {
+        values.length = 26;
+      }
+
+      const monthlyValues = monthlyIndexes
+        .map((index) => parsePolishNumber(values[index] ?? ""))
+        .filter((item): item is number => item !== null);
+      const monthlyTotal =
+        monthlyValues.length === monthlyIndexes.length
+          ? monthlyValues.reduce((sum, item) => sum + item, 0)
+          : null;
+
+      if (monthlyTotal !== null) {
+        values[24] = formatPolishInteger(monthlyTotal);
+      }
+
+      return { ...row, values };
+    });
+
+    const normalizedTableRows = alignedTableRows.map((row) => {
+      const values = [...row.values];
+      while (values.length < 26) {
+        values.push("");
+      }
+      if (values.length > 26) {
+        values.length = 26;
+      }
+      return { ...row, values };
+    });
+
+    const comparisonColumns = [
+      { metricIndex: 3, dynamicIndex: 4 },
+      { metricIndex: 8, dynamicIndex: 9 },
+      { metricIndex: 10, dynamicIndex: 11 },
+      { metricIndex: 15, dynamicIndex: 16 },
+      { metricIndex: 20, dynamicIndex: 21 },
+      { metricIndex: 22, dynamicIndex: 23 },
+      { metricIndex: 24, dynamicIndex: 25 },
+    ];
+
+    const rowByYear = new Map(
+      normalizedTableRows
+        .map((row) => {
+          const year = Number(row.year);
+          return Number.isFinite(year) ? [year, row] : null;
+        })
+        .filter((entry): entry is [number, { year: string; values: string[] }] => entry !== null),
+    );
+
+    const tableRowsWithDynamics = normalizedTableRows.map((row) => {
+      const year = Number(row.year);
+      const previousRow = Number.isFinite(year) ? rowByYear.get(year - 1) : undefined;
+      if (!previousRow) {
+        return row;
+      }
+
+      const values = [...row.values];
+      for (const { metricIndex, dynamicIndex } of comparisonColumns) {
+        const current = parsePolishNumber(values[metricIndex] ?? "");
+        const previous = parsePolishNumber(previousRow.values[metricIndex] ?? "");
+        if (current === null || previous === null || previous === 0) {
+          continue;
+        }
+        values[dynamicIndex] = formatDynamicsPercent(current, previous);
+      }
+
+      return { ...row, values };
+    });
+
+    const maxValueCount = tableRowsWithDynamics.reduce(
+      (max, row) => Math.max(max, row.values.length),
+      columnLabels.length,
+    );
+
+    const extractYearTotal = (values: string[]) => {
+      const directTotal = parsePolishNumber(values[24] ?? "");
+      if (directTotal !== null) {
+        return directTotal;
+      }
+
+      for (let index = values.length - 1; index >= 0; index -= 1) {
+        const rawValue = values[index]?.trim() ?? "";
+        if (!rawValue || rawValue.includes("%")) {
+          continue;
+        }
+        const parsed = parsePolishNumber(rawValue);
+        if (parsed !== null) {
+          return parsed;
+        }
+      }
+
+      return null;
+    };
+
+    const yearlySeries = tableRowsWithDynamics
+      .map((row) => {
+        const directTotal = parsePolishNumber(row.values[24] ?? "");
+        const fallbackTotal = extractYearTotal(row.values);
+        const total = directTotal ?? fallbackTotal;
+        if (total === null) {
+          return null;
+        }
+
+        const isPartialYear = directTotal === null;
+        return { year: row.year, total, isPartialYear };
+      })
+      .filter((item): item is { year: string; total: number; isPartialYear: boolean } => item !== null);
+
+    const chartWidth = 980;
+    const chartHeight = 340;
+    const chartPadding = { top: 24, right: 24, bottom: 52, left: 80 };
+    const plotWidth = chartWidth - chartPadding.left - chartPadding.right;
+    const plotHeight = chartHeight - chartPadding.top - chartPadding.bottom;
+    const maxTotal = yearlySeries.length > 0 ? Math.max(...yearlySeries.map((point) => point.total)) : 1;
+    const minTotal = yearlySeries.length > 0 ? Math.min(...yearlySeries.map((point) => point.total)) : 0;
+    const denominator = maxTotal - minTotal || 1;
+
+    const chartPoints = yearlySeries.map((point, index) => {
+      const x =
+        chartPadding.left +
+        (yearlySeries.length <= 1 ? 0 : (index / (yearlySeries.length - 1)) * plotWidth);
+      const y =
+        chartPadding.top + (1 - (point.total - minTotal) / denominator) * plotHeight;
+      return { ...point, x, y };
+    });
+
+    const chartPath =
+      chartPoints.length > 0
+        ? chartPoints
+            .map((point, index) => `${index === 0 ? "M" : "L"}${point.x.toFixed(2)} ${point.y.toFixed(2)}`)
+            .join(" ")
+        : "";
+    const tickCount = 5;
+    const yTicks = Array.from({ length: tickCount }, (_, index) => {
+      const ratio = tickCount === 1 ? 0 : index / (tickCount - 1);
+      const value = maxTotal - ratio * (maxTotal - minTotal);
+      const y = chartPadding.top + ratio * plotHeight;
+      return {
+        y,
+        value,
+        label: Math.round(value).toLocaleString("pl-PL"),
+      };
+    });
+    const barWidth =
+      chartPoints.length > 0
+        ? Math.min(42, Math.max(12, (plotWidth / chartPoints.length) * 0.56))
+        : 16;
+
+    const monthlyColumnsInOrder = [0, 1, 2, 5, 6, 7, 12, 13, 14, 17, 18, 19];
+    const getPartialDynamicsFromMonths = (
+      currentValues: string[],
+      previousValues: string[],
+    ) => {
+      let currentSum = 0;
+      let previousSum = 0;
+      let comparedMonths = 0;
+
+      for (const columnIndex of monthlyColumnsInOrder) {
+        const current = parsePolishNumber(currentValues[columnIndex] ?? "");
+        const previous = parsePolishNumber(previousValues[columnIndex] ?? "");
+        if (current === null || previous === null) {
+          break;
+        }
+        currentSum += current;
+        previousSum += previous;
+        comparedMonths += 1;
+      }
+
+      if (comparedMonths === 0 || previousSum === 0) {
+        return null;
+      }
+
+      return {
+        dynamics: (currentSum / previousSum) * 100,
+        comparedMonths,
+      };
+    };
+
+    const yearlyDynamicsSeries = tableRowsWithDynamics
+      .map((row) => {
+        const year = Number(row.year);
+        const directDynamics = parsePolishPercent(row.values[25] ?? "");
+        if (directDynamics !== null) {
+          return { year: row.year, dynamics: directDynamics, isPartial: false, comparedMonths: 12 };
+        }
+
+        const currentTotal = parsePolishNumber(row.values[24] ?? "");
+        const previousRow = Number.isFinite(year) ? rowByYear.get(year - 1) : undefined;
+        const previousTotal = previousRow
+          ? parsePolishNumber(previousRow.values[24] ?? "")
+          : null;
+
+        if (currentTotal !== null && previousTotal !== null && previousTotal !== 0) {
+          return {
+            year: row.year,
+            dynamics: (currentTotal / previousTotal) * 100,
+            isPartial: false,
+            comparedMonths: 12,
+          };
+        }
+
+        if (!previousRow) {
+          return null;
+        }
+
+        const partial = getPartialDynamicsFromMonths(row.values, previousRow.values);
+        if (!partial) {
+          return null;
+        }
+
+        return {
+          year: row.year,
+          dynamics: partial.dynamics,
+          isPartial: true,
+          comparedMonths: partial.comparedMonths,
+        };
+      })
+      .filter(
+        (
+          item,
+        ): item is {
+          year: string;
+          dynamics: number;
+          isPartial: boolean;
+          comparedMonths: number;
+        } => item !== null,
+      );
+
+    const dynamicsMinBase =
+      yearlyDynamicsSeries.length > 0
+        ? Math.min(...yearlyDynamicsSeries.map((point) => point.dynamics))
+        : 90;
+    const dynamicsMaxBase =
+      yearlyDynamicsSeries.length > 0
+        ? Math.max(...yearlyDynamicsSeries.map((point) => point.dynamics))
+        : 110;
+    const dynamicsMin = Math.max(0, Math.floor(dynamicsMinBase - 2));
+    const dynamicsMax = Math.ceil(dynamicsMaxBase + 2);
+    const dynamicsDenominator = dynamicsMax - dynamicsMin || 1;
+
+    const dynamicsPoints = yearlyDynamicsSeries.map((point, index) => {
+      const x =
+        chartPadding.left +
+        (yearlyDynamicsSeries.length <= 1
+          ? 0
+          : (index / (yearlyDynamicsSeries.length - 1)) * plotWidth);
+      const y =
+        chartPadding.top +
+        (1 - (point.dynamics - dynamicsMin) / dynamicsDenominator) * plotHeight;
+      return { ...point, x, y };
+    });
+
+    const dynamicsPath =
+      dynamicsPoints.length > 0
+        ? dynamicsPoints
+            .map((point, index) => `${index === 0 ? "M" : "L"}${point.x.toFixed(2)} ${point.y.toFixed(2)}`)
+            .join(" ")
+        : "";
+
+    const dynamicsTicks = Array.from({ length: tickCount }, (_, index) => {
+      const ratio = tickCount === 1 ? 0 : index / (tickCount - 1);
+      const value = dynamicsMax - ratio * (dynamicsMax - dynamicsMin);
+      const y = chartPadding.top + ratio * plotHeight;
+      return {
+        y,
+        label: `${value.toFixed(1).replace(".", ",")}%`,
+      };
+    });
+
+    const lastEditText =
+      lastEditIndex !== -1 ? visibleParagraphs[lastEditIndex].trim() : undefined;
+    const opracowanieLines =
+      opracowanieIndex !== -1
+        ? visibleParagraphs
+            .slice(opracowanieIndex + 1)
+            .map((line) => line.trim())
+            .filter(Boolean)
+        : [];
+
+    const opracowanieText = opracowanieLines.join(" ");
+    const emailMatch = opracowanieText.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/);
+    const beforeEmail = emailMatch
+      ? opracowanieText.slice(0, emailMatch.index).trim()
+      : opracowanieText;
+    const afterEmail = emailMatch
+      ? opracowanieText.slice((emailMatch.index ?? 0) + emailMatch[0].length).trim()
+      : "";
+
+    return (
+      <div className="article-layout article-layout-full shell">
+        <article className="prose prose-justified prose-wstawienia">
+          <h2>Wstawienia 2015 - 2026</h2>
+          <p>
+            Liczba piskląt hodowlanych kur mięsnych (stada rodzicielskie - w szt. samic)
+            przyjętych do wychowu w latach 2015-2026 wraz z dynamiką zmian wielkości zaplecza (%).
+          </p>
+
+          <div className="wstawienia-table-wrap" aria-label="Tabela wstawień 2015-2026">
+            <table className="wstawienia-table">
+              <thead>
+                <tr>
+                  <th>Rok</th>
+                  {Array.from({ length: maxValueCount }).map((_, index) => (
+                    <th key={`wstawienia-header-${index}`}>
+                      {columnLabels[index] ?? `Kolumna ${index + 1}`}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {tableRowsWithDynamics.map((row) => (
+                  <tr key={row.year}>
+                    <th scope="row">{row.year}</th>
+                    {Array.from({ length: maxValueCount }).map((_, index) => (
+                      <td key={`${row.year}-${index}`}>{row.values[index] ?? ""}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {chartPoints.length > 0 && (
+            <section className="wstawienia-chart" aria-label="Wykres rocznych wstawień">
+              <h2>Wykres rocznych wstawień (kolumna „Rok”)</h2>
+              <div className="wstawienia-chart-figure">
+                <input
+                  type="radio"
+                  id="wstawienia-chart-line"
+                  name="wstawienia-chart-mode"
+                  className="wstawienia-chart-toggle-input"
+                  defaultChecked
+                />
+                <input
+                  type="radio"
+                  id="wstawienia-chart-bar"
+                  name="wstawienia-chart-mode"
+                  className="wstawienia-chart-toggle-input"
+                />
+                <input
+                  type="radio"
+                  id="wstawienia-chart-dynamics"
+                  name="wstawienia-chart-mode"
+                  className="wstawienia-chart-toggle-input"
+                />
+                <div className="wstawienia-chart-switch" role="group" aria-label="Przełącznik typu wykresu">
+                  <label htmlFor="wstawienia-chart-line">Liniowy</label>
+                  <label htmlFor="wstawienia-chart-bar">Słupkowy</label>
+                  <label htmlFor="wstawienia-chart-dynamics">Dynamika</label>
+                </div>
+              <svg
+                className="wstawienia-chart-canvas"
+                viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+                role="img"
+                aria-label="Wykres rocznych wstawień"
+              >
+                <rect x="0" y="0" width={chartWidth} height={chartHeight} fill="#ffffff" />
+
+                {yTicks.map((tick, index) => (
+                  <g key={`y-tick-${index}`}>
+                    <line
+                      x1={chartPadding.left}
+                      y1={tick.y}
+                      x2={chartWidth - chartPadding.right}
+                      y2={tick.y}
+                      className="wstawienia-chart-grid-line"
+                    />
+                    <text
+                      x={chartPadding.left - 10}
+                      y={tick.y + 4}
+                      textAnchor="end"
+                      className="wstawienia-chart-value"
+                    >
+                      {tick.label}
+                    </text>
+                  </g>
+                ))}
+
+                <line
+                  x1={chartPadding.left}
+                  y1={chartHeight - chartPadding.bottom}
+                  x2={chartWidth - chartPadding.right}
+                  y2={chartHeight - chartPadding.bottom}
+                  stroke="#b8b5ad"
+                />
+                <line
+                  x1={chartPadding.left}
+                  y1={chartPadding.top}
+                  x2={chartPadding.left}
+                  y2={chartHeight - chartPadding.bottom}
+                  stroke="#b8b5ad"
+                />
+
+                <g className="wstawienia-series wstawienia-series-line">
+                  <path d={chartPath} fill="none" stroke="#1f6c3d" strokeWidth="3" />
+                  {chartPoints.map((point) => (
+                    <g key={`point-line-${point.year}`}>
+                      <circle
+                        cx={point.x}
+                        cy={point.y}
+                        r="4"
+                        fill={point.isPartialYear ? "#b27a1f" : "#1f6c3d"}
+                      />
+                      <text
+                        x={point.x}
+                        y={point.y - 10}
+                        textAnchor="middle"
+                        className="wstawienia-chart-value wstawienia-chart-point-value"
+                      >
+                        {Math.round(point.total).toLocaleString("pl-PL")}
+                        {point.isPartialYear ? "*" : ""}
+                      </text>
+                    </g>
+                  ))}
+                </g>
+
+                <g className="wstawienia-series wstawienia-series-bar">
+                  {chartPoints.map((point) => (
+                    <g key={`point-bar-${point.year}`}>
+                      <rect
+                        x={point.x - barWidth / 2}
+                        y={point.y}
+                        width={barWidth}
+                        height={chartHeight - chartPadding.bottom - point.y}
+                        fill={point.isPartialYear ? "#d4a24a" : "#3e8a57"}
+                      />
+                      <text
+                        x={point.x}
+                        y={point.y - 8}
+                        textAnchor="middle"
+                        className="wstawienia-chart-value wstawienia-chart-point-value"
+                      >
+                        {Math.round(point.total).toLocaleString("pl-PL")}
+                        {point.isPartialYear ? "*" : ""}
+                      </text>
+                    </g>
+                  ))}
+                </g>
+
+                {chartPoints.map((point) => (
+                  <text
+                    key={`x-label-${point.year}`}
+                    x={point.x}
+                    y={chartHeight - chartPadding.bottom + 20}
+                    textAnchor="middle"
+                    className="wstawienia-chart-year"
+                  >
+                    {point.year}
+                  </text>
+                ))}
+              </svg>
+              {dynamicsPoints.length > 0 && (
+                <svg
+                  className="wstawienia-chart-canvas wstawienia-chart-canvas-dynamics"
+                  viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+                  role="img"
+                  aria-label="Wykres dynamiki rocznej"
+                >
+                  <rect x="0" y="0" width={chartWidth} height={chartHeight} fill="#ffffff" />
+
+                  {dynamicsTicks.map((tick, index) => (
+                    <g key={`dynamics-tick-${index}`}>
+                      <line
+                        x1={chartPadding.left}
+                        y1={tick.y}
+                        x2={chartWidth - chartPadding.right}
+                        y2={tick.y}
+                        className="wstawienia-chart-grid-line"
+                      />
+                      <text
+                        x={chartPadding.left - 10}
+                        y={tick.y + 4}
+                        textAnchor="end"
+                        className="wstawienia-chart-value"
+                      >
+                        {tick.label}
+                      </text>
+                    </g>
+                  ))}
+
+                  <line
+                    x1={chartPadding.left}
+                    y1={chartHeight - chartPadding.bottom}
+                    x2={chartWidth - chartPadding.right}
+                    y2={chartHeight - chartPadding.bottom}
+                    stroke="#b8b5ad"
+                  />
+                  <line
+                    x1={chartPadding.left}
+                    y1={chartPadding.top}
+                    x2={chartPadding.left}
+                    y2={chartHeight - chartPadding.bottom}
+                    stroke="#b8b5ad"
+                  />
+
+                  <path d={dynamicsPath} fill="none" stroke="#a3471f" strokeWidth="3" />
+                  {dynamicsPoints.map((point) => (
+                    <g key={`dynamics-point-${point.year}`}>
+                      <circle
+                        cx={point.x}
+                        cy={point.y}
+                        r="4"
+                        fill={point.isPartial ? "#b27a1f" : "#a3471f"}
+                      />
+                      <text
+                        x={point.x}
+                        y={point.y - 10}
+                        textAnchor="middle"
+                        className="wstawienia-chart-value wstawienia-chart-point-value"
+                      >
+                        {`${point.dynamics.toFixed(1).replace(".", ",")}%`}
+                        {point.isPartial ? "*" : ""}
+                      </text>
+                      <text
+                        x={point.x}
+                        y={chartHeight - chartPadding.bottom + 20}
+                        textAnchor="middle"
+                        className="wstawienia-chart-year"
+                      >
+                        {point.year}
+                      </text>
+                    </g>
+                  ))}
+                </svg>
+              )}
+              {dynamicsPoints.some((point) => point.isPartial) && (
+                <p className="wstawienia-chart-note">
+                  * Dynamika częściowa: porównanie narastająco dla analogicznego okresu
+                  rok do roku (np. 2026 vs 2025 dla dostępnych miesięcy).
+                </p>
+              )}
+              {chartPoints.some((point) => point.isPartialYear) && (
+                <p className="wstawienia-chart-note">
+                  * 2026: wartość częściowa (narastająco), bo pełna wartość roczna nie jest
+                  jeszcze dostępna w źródle.
+                </p>
+              )}
+              </div>
+            </section>
+          )}
+
+          {lastEditText && <p className="wstawienia-meta-line">{lastEditText}</p>}
+          {opracowanieText && (
+            <p className="wstawienia-meta-line">
+              <strong>Opracowanie:</strong>{" "}
+              {beforeEmail}
+              {emailMatch && (
+                <>
+                  <a href={`mailto:${emailMatch[0]}`}>{emailMatch[0]}</a>
+                  {afterEmail ? ` ${afterEmail}` : ""}
+                </>
+              )}
+            </p>
+          )}
+
           <a className="source-link source-link-inline" href={resolvedSource}>
             Zobacz materiał na obecnej stronie KRD-IG <Arrow />
           </a>
@@ -679,6 +1509,212 @@ export function ArticleBody({
     );
   }
 
+  if (slug === "kampanie") {
+    const normalizeText = (value: string) =>
+      value
+        .trim()
+        .replace(/\s+/g, " ")
+        .replace(/[„”]/g, '"')
+        .toLocaleLowerCase("pl");
+
+    const toSingleSentence = (value: string) => {
+      const clean = value.trim().replace(/\s+/g, " ").replace(/\.\.\.$/, ".");
+      const firstSentence = clean.match(/^[^.!?]+[.!?]/)?.[0];
+      if (firstSentence) {
+        return firstSentence.trim();
+      }
+      return clean.endsWith(".") ? clean : `${clean}.`;
+    };
+
+    const datePattern = /^\d{1,2}\s+[a-z]{3}\s+\d{4}$/i;
+    const normalizedParagraphs = visibleParagraphs.map((paragraph) => paragraph.trim()).filter(Boolean);
+    const dateByTitle = new Map<string, string>();
+    const summaryByTitle = new Map<string, string>();
+
+    const knownTitles = new Set(
+      links
+        .filter((link) => {
+          const normalized = link.label.trim().toLocaleLowerCase("pl");
+          return normalized !== "otwórz źródło" && normalized !== "czytaj dalej";
+        })
+        .map((link) => normalizeText(link.label)),
+    );
+
+    for (let index = 0; index < normalizedParagraphs.length - 1; index += 1) {
+      const current = normalizedParagraphs[index];
+      const next = normalizedParagraphs[index + 1];
+      if (datePattern.test(next)) {
+        dateByTitle.set(normalizeText(current), next);
+      }
+
+      const normalizedCurrent = normalizeText(current);
+      if (!knownTitles.has(normalizedCurrent)) {
+        continue;
+      }
+
+      const hasDate = datePattern.test(next);
+      const summaryCandidate = hasDate ? normalizedParagraphs[index + 2] : next;
+      if (!summaryCandidate) {
+        continue;
+      }
+
+      const normalizedSummary = normalizeText(summaryCandidate);
+      if (datePattern.test(summaryCandidate) || knownTitles.has(normalizedSummary)) {
+        continue;
+      }
+
+      summaryByTitle.set(normalizedCurrent, toSingleSentence(summaryCandidate));
+    }
+
+    const campaignLinks = Array.from(
+      new Map(
+        links
+          .filter((link) => {
+            const normalized = link.label.trim().toLocaleLowerCase("pl");
+            return normalized !== "otwórz źródło" && normalized !== "czytaj dalej";
+          })
+          .map((link) => [link.href, link]),
+      ).values(),
+    ).map((link) => {
+      const href = /^https?:\/\//i.test(link.href) ? link.href : withBasePath(link.href);
+      return {
+        title: link.label.trim(),
+        href,
+        date: dateByTitle.get(normalizeText(link.label.trim())),
+        summary:
+          summaryByTitle.get(normalizeText(link.label.trim())) ??
+          "Zobacz szczegoly kampanii w materiale zrodlowym.",
+      };
+    });
+
+    return (
+      <div className="article-layout article-layout-full shell">
+        <article className="prose prose-kampanie">
+          <h2>Realizowane kampanie</h2>
+          <p>
+            Zestawienie obejmuje aktualne i archiwalne działania promocyjno-edukacyjne KRD-IG.
+            Poniżej znajduje się uporządkowana lista kampanii wraz z odnośnikami do materiałów.
+          </p>
+
+          <ul className="kampanie-list" aria-label="Lista kampanii">
+            {campaignLinks.map((item) => (
+              <li key={`${item.href}-${item.title}`} className="kampanie-list-item">
+                <a href={item.href}>
+                  <span className="kampanie-main">
+                    <span className="kampanie-title">{item.title.toLocaleUpperCase("pl")}</span>
+                    <span className="kampanie-summary">{item.summary}</span>
+                  </span>
+                  {item.date && <span className="kampanie-date">{item.date}</span>}
+                </a>
+              </li>
+            ))}
+          </ul>
+
+          <a className="source-link source-link-inline" href={resolvedSource}>
+            Zobacz materiał na obecnej stronie KRD-IG <Arrow />
+          </a>
+        </article>
+      </div>
+    );
+  }
+
+  if (slug === "dolacz-do-nas") {
+    const downloadHref =
+      links.find((link) => link.label.trim().toLocaleUpperCase("pl") === "POBIERZ")?.href ??
+      "https://krd-ig.com.pl/wp-content/uploads/2025/02/Deklaracja-przystapienia-do-Izby-2023.doc";
+
+    const voivodeships = [
+      "kujawsko-pomorskie",
+      "lubelskie",
+      "lubuskie",
+      "łódzkie",
+      "małopolskie",
+      "mazowieckie",
+      "opolskie",
+      "podkarpackie",
+      "podlaskie",
+      "pomorskie",
+      "śląskie",
+      "świętokrzyskie",
+      "warmińsko-mazurskie",
+      "wielkopolskie",
+      "zachodniopomorskie",
+    ];
+
+    const businessScopes = [
+      "Ferma hodowlana",
+      "Ferma reprodukcyjna",
+      "Ferma zarodowa",
+      "Jednostka naukowo-badawcza",
+      "Produkcja jaj spożywczych",
+      "Produkcja puchu i pierza",
+      "Produkcja towarzysząca",
+      "Produkcja/mieszalnia pasz",
+      "Przetwórstwo",
+      "Ubojnia",
+      "Zakład wylęgowy",
+      "Inne",
+    ];
+
+    const poultrySpecies = ["Kurczak", "Kaczka", "Gęś", "Indyk", "Inne"];
+    const assortments = ["Świeże", "Mrożone", "Przetwory", "Inne"];
+    const certifications = ["BRC", "Halal", "IFS", "Kosher", "QAFP", "Red Tractor", "Inne"];
+    const exportPermits = [
+      "Arabia Saudyjska",
+      "Białoruś",
+      "Chiny",
+      "Egipt",
+      "Japonia",
+      "Kanada",
+      "Korea Pd.",
+      "Kuba",
+      "RPA",
+      "Singapur",
+      "Tajwan",
+      "Ukraina",
+      "USA",
+      "Wietnam",
+      "Inne",
+    ];
+
+    return (
+      <div className="article-layout article-layout-full shell">
+        <article className="prose prose-dolacz">
+          <p>{visibleParagraphs[0]}</p>
+          <p>{visibleParagraphs[1]}</p>
+
+          <section className="dolacz-download" aria-label="Pobierz deklarację członkowską">
+            <h2>POBIERZ</h2>
+            <a className="dolacz-download-link" href={downloadHref}>
+              Pobierz deklarację członkowską
+            </a>
+          </section>
+
+          <section className="dolacz-section">
+            <h2>Wypełnij formularz i dołącz do nas</h2>
+            <p>
+              Uzupełnij dane firmy i wybierz pola działalności, aby przesłać kompletne zgłoszenie
+              członkowskie.
+            </p>
+          </section>
+
+          <MembershipSignupForm
+            voivodeships={voivodeships}
+            businessScopes={businessScopes}
+            poultrySpecies={poultrySpecies}
+            assortments={assortments}
+            certifications={certifications}
+            exportPermits={exportPermits}
+          />
+
+          <a className="source-link source-link-inline" href={resolvedSource}>
+            Zobacz materiał na obecnej stronie KRD-IG <Arrow />
+          </a>
+        </article>
+      </div>
+    );
+  }
+
   if (slug === "dobrostan-zwierzat") {
     const introParagraphs = visibleParagraphs.slice(0, 2);
     const mythFactItems = [
@@ -799,7 +1835,7 @@ export function ArticleBody({
 
     return (
       <div className="article-layout article-layout-full shell">
-        <article className="prose">
+        <article className="prose prose-poszanowanie-icons">
           <h2>Poszanowanie środowiska</h2>
           {introParagraphs.map((paragraph, index) => (
             <p key={`${index}-${paragraph.slice(0, 24)}`}>{paragraph}</p>
@@ -1125,52 +2161,126 @@ export function ArticleBody({
   }
 
   if (slug === "jakosc-i-bezpieczenstwo") {
-    const linksByHref = new Map(links.map((link) => [link.href, link]));
+    const qualityPictogram = (kind: string) => {
+      if (kind === "shield") {
+        return (
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M12 2L4 5v6c0 5 3.5 9.4 8 11 4.5-1.6 8-6 8-11V5l-8-3z" fill="none" stroke="currentColor" strokeWidth="1.8"/>
+            <path d="M8.2 12.3l2.4 2.3 5-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        );
+      }
+      if (kind === "certificate") {
+        return (
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <rect x="4" y="3.5" width="16" height="13" rx="1.6" fill="none" stroke="currentColor" strokeWidth="1.7"/>
+            <path d="M7 7h10M7 10h7" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
+            <path d="M10 16.5l-1 4 3-1.4 3 1.4-1-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        );
+      }
+      if (kind === "label") {
+        return (
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M3.5 11l7.5-7.5h7.5v7.5L11 18.5 3.5 11z" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/>
+            <circle cx="15.5" cy="8.5" r="1.4" fill="none" stroke="currentColor" strokeWidth="1.7"/>
+          </svg>
+        );
+      }
+      if (kind === "layers") {
+        return (
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M12 3l8 4.5-8 4.5-8-4.5L12 3zM4 12l8 4.5 8-4.5M4 16.5L12 21l8-4.5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"/>
+          </svg>
+        );
+      }
+      if (kind === "chain") {
+        return (
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M4 8.5h6.5M13.5 15.5H20M10.5 8.5l3 7M8 15.5l2.5-7M13.5 8.5l2.5 7" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
+            <circle cx="4" cy="8.5" r="1.7" fill="none" stroke="currentColor" strokeWidth="1.7"/>
+            <circle cx="20" cy="15.5" r="1.7" fill="none" stroke="currentColor" strokeWidth="1.7"/>
+          </svg>
+        );
+      }
+      if (kind === "trace") {
+        return (
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="10.5" cy="10.5" r="5.8" fill="none" stroke="currentColor" strokeWidth="1.7"/>
+            <path d="M15.2 15.2L20 20M8 10.5h5M10.5 8v5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
+          </svg>
+        );
+      }
+      return null;
+    };
+
+    const qualityBlock = (kind: string, content: JSX.Element) => (
+      <div className="jakosc-block">
+        <span className="jakosc-pictogram">{qualityPictogram(kind)}</span>
+        <div className="jakosc-block-content">{content}</div>
+      </div>
+    );
+
     const thematicLinks = [
-      { title: "System QAFP", href: "/system-qafp/" },
-      { title: "Segmentacja", href: "/segmentacja/" },
-      { title: "Zdrowy drób", href: "/zdrowy-drob/" },
-      { title: "Bezpieczna produkcja", href: "/bezpieczna-produkcja/" },
-    ].map((item) => ({
-      title: item.title,
-      href: linksByHref.get(item.href)?.href ?? item.href,
-    }));
+      { title: "System QAFP", href: withBasePath("/tresc/system-qafp") },
+      { title: "Segmentacja", href: withBasePath("/tresc/segmentacja") },
+      { title: "Zdrowy drób", href: withBasePath("/tresc/zdrowy-drob") },
+      { title: "Bezpieczna produkcja", href: withBasePath("/tresc/bezpieczna-produkcja") },
+    ];
 
     return (
       <div className="article-layout article-layout-full shell">
-        <article className="prose">
+        <article className="prose prose-jakosc-blocks">
           <h2>Jakość i bezpieczeństwo polskiego drobiarstwa</h2>
-          <p>
-            Priorytetem branży drobiarskiej jest dostarczanie produktów o potwierdzonej jakości,
-            pełnej identyfikowalności oraz wysokim poziomie bezpieczeństwa zdrowotnego.
-          </p>
+          {qualityBlock(
+            "shield",
+            <p>
+              Priorytetem branży drobiarskiej jest dostarczanie produktów o potwierdzonej jakości,
+              pełnej identyfikowalności oraz wysokim poziomie bezpieczeństwa zdrowotnego.
+            </p>,
+          )}
 
           <h2>System QAFP</h2>
-          <p>
-            System Gwarantowanej Jakości Żywności QAFP to krajowy system certyfikacji, który
-            obejmuje kontrolę na etapach hodowli, produkcji i dystrybucji.
-          </p>
-          <p>
-            <strong>Oznaczenie QAFP</strong> potwierdza, że produkt spełnia ściśle określone
-            standardy jakościowe i bezpieczeństwa.
-          </p>
+          {qualityBlock(
+            "certificate",
+            <p>
+              System Gwarantowanej Jakości Żywności QAFP to krajowy system certyfikacji, który
+              obejmuje kontrolę na etapach hodowli, produkcji i dystrybucji.
+            </p>,
+          )}
+          {qualityBlock(
+            "label",
+            <p>
+              <strong>Oznaczenie QAFP</strong> potwierdza, że produkt spełnia ściśle określone
+              standardy jakościowe i bezpieczeństwa.
+            </p>,
+          )}
 
           <h2>Segmentacja i transparentność</h2>
-          <p>
-            Segmentacja produktowa porządkuje kategorie żywności według jasno zdefiniowanych
-            cech, dzięki czemu odbiorcy otrzymują czytelną informację o charakterystyce i jakości
-            kupowanego produktu.
-          </p>
+          {qualityBlock(
+            "layers",
+            <p>
+              Segmentacja produktowa porządkuje kategorie żywności według jasno zdefiniowanych
+              cech, dzięki czemu odbiorcy otrzymują czytelną informację o charakterystyce i jakości
+              kupowanego produktu.
+            </p>,
+          )}
 
           <h2>Zdrowy drób i podejście od pola do stołu</h2>
-          <p>
-            W unijnym modelu produkcji żywności nadrzędna jest zasada od pola do stołu,
-            zakładająca ciągły nadzór nad całym łańcuchem produkcyjnym.
-          </p>
-          <p>
-            <strong>Kluczową rolę odgrywa identyfikowalność (traceability)</strong>, która
-            umożliwia monitorowanie pochodzenia i jakości produktów drobiowych na każdym etapie.
-          </p>
+          {qualityBlock(
+            "chain",
+            <p>
+              W unijnym modelu produkcji żywności nadrzędna jest zasada od pola do stołu,
+              zakładająca ciągły nadzór nad całym łańcuchem produkcyjnym.
+            </p>,
+          )}
+          {qualityBlock(
+            "trace",
+            <p>
+              <strong>Kluczową rolę odgrywa identyfikowalność (traceability)</strong>, która
+              umożliwia monitorowanie pochodzenia i jakości produktów drobiowych na każdym etapie.
+            </p>,
+          )}
 
           <h2>Materiały tematyczne</h2>
           <div className="resource-box">
@@ -1549,7 +2659,7 @@ export function ArticleBody({
 
   if (slug === "cennik") {
     const cennikDocumentHref =
-      links.find((link) => link.document)?.href ?? links[0]?.href ?? resolvedSource;
+      "https://krd-ig.com.pl/wp-content/uploads/2026/02/Cennik-od-01.02.2026-r.pdf";
 
     return (
       <div className="article-layout article-layout-full shell">
@@ -1560,7 +2670,7 @@ export function ArticleBody({
             if (normalizedUpper === "POBIERZ") {
               return (
                 <h2 key={`${index}-cennik-download`}>
-                  <a href={cennikDocumentHref}>POBIERZ</a>
+                  <a className="cennik-download-link" href={cennikDocumentHref}>POBIERZ</a>
                 </h2>
               );
             }
@@ -1785,16 +2895,732 @@ export function ArticleBody({
   }
 
   const shouldJustifyArticleText =
-    slug === "bezpieczenstwo-bialkowe" || slug === "globalizacja-rynku";
+    slug === "bezpieczenstwo-bialkowe" ||
+    slug === "globalizacja-rynku" ||
+    slug === "przedstawicielstwo-w-chinach";
   const shouldUseFullWidthArticleLayout =
-    slug === "globalizacja-rynku" || slug === "bezpieczenstwo-bialkowe";
+    slug === "globalizacja-rynku" ||
+    slug === "bezpieczenstwo-bialkowe" ||
+    slug === "przedstawicielstwo-w-chinach";
+
+  if (
+    slug ===
+    "polish-poultry-na-alimentaria-2026-rekordowa-edycja-rekordowa-energia-rekordowa-polska"
+  ) {
+    const exhibitors = [
+      "P.D. DROBEX sp. z o.o.",
+      "DROSED HOLDING S.A.",
+      "EFARM Maciej Rosner",
+      "Food Park Kowal sp. z o.o.",
+      "IMEX POLAND sp. z o.o.",
+      "INDYKPOL S.A.",
+      "KPS Food Pionki sp. z o.o.",
+      "PMiW ŁUKOSZ sp. z o.o.",
+      "SUPERDROB S.A.",
+      "Zakład Drobiarski w Stasinie sp. z o.o.",
+    ];
+
+    const completedActions = [
+      "przygotowanie nowoczesnego, atrakcyjnego stoiska POLISH POULTRY,",
+      "kompleksowa obsługa kulinarna i organizacja koktajlu branżowego,",
+      "produkcja materiałów promocyjnych,",
+      "udział firm drobiarskich,",
+      "promocja marek „Polski drób” i „Polska Smakuje”.",
+    ];
+
+    return (
+      <div className="article-layout article-layout-full shell">
+        <article className="prose prose-justified prose-alimentaria">
+          <p>
+            Targi Alimentaria 2026 w Barcelonie przejdą do historii zarówno jako rekordowa
+            edycja wydarzenia, jak i jeden z najmocniejszych występów polskiej branży
+            drobiarskiej na arenie międzynarodowej. W roku, w którym Polska pełniła rolę kraju
+            partnerskiego, marka POLISH POULTRY była widoczna, rozpoznawalna i intensywnie obecna
+            w najważniejszych rozmowach biznesowych.
+          </p>
+
+          <h2>Polska siła w Barcelonie</h2>
+          <p>Na wspólnym stoisku POLISH POULTRY zaprezentowało się 10 firm sektora:</p>
+          <ul className="alimentaria-list">
+            {exhibitors.map((company) => (
+              <li key={company}>{company}</li>
+            ))}
+          </ul>
+          <p>
+            Przez cztery intensywne dni przedstawiciele firm prowadzili rozmowy B2B, prezentowali
+            ofertę produktową i budowali relacje z partnerami z całego świata. Ogromnym
+            zainteresowaniem cieszyły się degustacje. Ponad 1500 porcji pozwoliło odwiedzającym
+            poznać smak, jakość i różnorodność polskiego drobiu.
+          </p>
+          <p>
+            Stoisko POLISH POULTRY stało się jednym z najbardziej obleganych miejsc w hali,
+            przestrzenią spotkań, negocjacji i inspirujących rozmów, która jednocześnie wzmacniała
+            wizerunek Polski jako solidnego, nowoczesnego i elastycznego partnera biznesowego.
+          </p>
+
+          <h2>Rekordowe targi, wyjątkowa widoczność Polski</h2>
+          <p>
+            Alimentaria 2026 zgromadziła ponad 3200 wystawców z blisko 70 krajów oraz ponad 100
+            tys. odwiedzających. Polska jako kraj partnerski była w centrum uwagi, a polskie
+            stoiska odwiedził m.in. król Hiszpanii Filip VI, podkreślając rangę i prestiż
+            wydarzenia.
+          </p>
+          <p>
+            Międzynarodowy charakter targów oraz obecność kluczowych decydentów branży stworzyły
+            idealne warunki do promocji polskiego drobiu i wzmacniania relacji handlowych z
+            partnerami z Europy, Ameryki Łacińskiej, Bliskiego Wschodu i Azji.
+          </p>
+
+          <h2>Zrealizowane działania, realne efekty</h2>
+          <p>Wszystkie zaplanowane działania zostały wykonane, w tym:</p>
+          <ul className="alimentaria-list">
+            {completedActions.map((action) => (
+              <li key={action}>{action}</li>
+            ))}
+          </ul>
+          <p>
+            Efekt? Wzrost rozpoznawalności polskiego drobiu, wzmocnienie relacji z dotychczasowymi
+            partnerami oraz pozyskanie nowych kontaktów o dużym potencjale eksportowym. Wspólna
+            prezentacja branży pokazała jej siłę, profesjonalizm i spójność strategiczną, czyli
+            dokładnie to, czego oczekują globalni odbiorcy.
+          </p>
+
+          <h2>Dziękujemy</h2>
+          <p>
+            Dziękujemy wszystkim współwystawcom, partnerom i gościom, którzy odwiedzili stoisko
+            POLISH POULTRY. Dzięki Waszej energii i zaangażowaniu stworzyliśmy przestrzeń, która
+            doskonale pokazała potencjał polskiego drobiu na rynku międzynarodowym.
+          </p>
+          <p>Do zobaczenia na kolejnych wydarzeniach. Wracamy jeszcze silniejsi!</p>
+
+          <a className="source-link source-link-inline" href={resolvedSource}>
+            Zobacz materiał na obecnej stronie KRD-IG <Arrow />
+          </a>
+        </article>
+      </div>
+    );
+  }
+
+  if (slug === "pierze-i-puch-certyfikacja") {
+    const markerText = "5. regulamin audytów pochodzenia pierza i puchu";
+    const a4StartIndex = visibleParagraphs.findIndex(
+      (paragraph) => paragraph.trim().toLocaleLowerCase("pl") === markerText,
+    );
+
+    const renderPierzeParagraph = (
+      paragraph: string,
+      absoluteIndex: number,
+      keyPrefix: string,
+    ) => {
+      const trimmedParagraph = paragraph.trim();
+      const isParagraphPoint = /^\s*(?:\d+|[a-z])\)\s+/i.test(trimmedParagraph);
+      const isSectionMarker = /^\s*§\s*\d+\s*$/.test(trimmedParagraph);
+      const isSectionHeading =
+        looksLikeAllCapsHeading(trimmedParagraph) ||
+        isSectionMarker ||
+        (absoluteIndex > 0 &&
+          looksLikeHeading(trimmedParagraph) &&
+          trimmedParagraph.length <= 55);
+
+      if (isSectionHeading && !isParagraphPoint) {
+        return <h2 key={`${keyPrefix}-${absoluteIndex}-${paragraph.slice(0, 20)}`}>{paragraph}</h2>;
+      }
+
+      return (
+        <p
+          key={`${keyPrefix}-${absoluteIndex}-${paragraph.slice(0, 20)}`}
+          className={isParagraphPoint ? "pierze-legal-point" : undefined}
+        >
+          {paragraph}
+        </p>
+      );
+    };
+
+    const renderPierzeSegment = (
+      paragraphs: string[],
+      startIndex: number,
+      keyPrefix: string,
+    ) => {
+      const elements: JSX.Element[] = [];
+
+      for (let index = 0; index < paragraphs.length; index += 1) {
+        const current = paragraphs[index]?.trim() ?? "";
+        const intro = paragraphs[index + 1]?.trim() ?? "";
+        const rowA = paragraphs[index + 2]?.trim() ?? "";
+        const rowB = paragraphs[index + 3]?.trim() ?? "";
+        const rowC = paragraphs[index + 4]?.trim() ?? "";
+
+        const isRequirementsBlock =
+          current.toLocaleLowerCase("pl") === "rodzaje wymagań" &&
+          intro.startsWith("W ramach certyfikacji") &&
+          rowA.startsWith("Zalecane") &&
+          rowB.startsWith("Ważne") &&
+          rowC.startsWith("Bardzo ważne");
+
+        if (isRequirementsBlock) {
+          const splitRequirement = (line: string) => {
+            const [label, ...rest] = line.split(/[–-]/);
+            return {
+              label: (label ?? "").trim(),
+              description: rest.join("-").trim(),
+            };
+          };
+
+          const requirementRows = [rowA, rowB, rowC].map(splitRequirement);
+
+          elements.push(
+            <h2 key={`${keyPrefix}-${startIndex + index}-rodzaje-wymagan`}>Rodzaje wymagań</h2>,
+          );
+          elements.push(
+            <p key={`${keyPrefix}-${startIndex + index + 1}-rodzaje-wymagan-intro`}>{intro}</p>,
+          );
+          elements.push(
+            <div
+              key={`${keyPrefix}-${startIndex + index}-rodzaje-wymagan-table`}
+              className="pierze-requirements-wrap"
+              aria-label="Tabela rodzajów wymagań"
+            >
+              <table className="pierze-requirements-table">
+                <thead>
+                  <tr>
+                    <th>Waga Wymagania</th>
+                    <th>Opis wymagania</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {requirementRows.map((row) => (
+                    <tr key={`${keyPrefix}-${row.label}`}>
+                      <td>{row.label}</td>
+                      <td>{row.description}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>,
+          );
+
+          index += 4;
+          continue;
+        }
+
+        const docsMatrixIntro =
+          current.toLocaleLowerCase("pl") ===
+            "regulamin przeprowadzania audytów określa trzy rodzaje wymagań:" &&
+          (paragraphs[index + 1]?.trim().toLocaleLowerCase("pl") ?? "") === "wymaganie" &&
+          (paragraphs[index + 2]?.trim().toLocaleLowerCase("pl") ?? "") ===
+            "rodzaj dokumentów";
+
+        if (docsMatrixIntro) {
+          const zalecaneLine = paragraphs[index + 3]?.trim() ?? "";
+          const wazneLine = paragraphs[index + 4]?.trim() ?? "";
+          const wazneLine2 = paragraphs[index + 5]?.trim() ?? "";
+          const wazneLine3 = paragraphs[index + 6]?.trim() ?? "";
+          const bardzoWazneLabel = paragraphs[index + 7]?.trim() ?? "";
+          const bardzoWazneLine = paragraphs[index + 8]?.trim() ?? "";
+          const bardzoWazneLine2 = paragraphs[index + 9]?.trim() ?? "";
+          const bardzoWazneLine3 = paragraphs[index + 10]?.trim() ?? "";
+
+          const clean = (value: string) => value.replace(/^\s*#+\s*/g, "").trim();
+          const splitFirstWord = (value: string) => {
+            const normalized = clean(value);
+            const match = normalized.match(/^(Zalecane|Ważne)\s+(.+)$/i);
+            if (!match) {
+              return { label: normalized, detail: "" };
+            }
+            return { label: match[1], detail: match[2].trim() };
+          };
+
+          const zalecane = splitFirstWord(zalecaneLine);
+          const wazne = splitFirstWord(wazneLine);
+          const bardzoWazneLabelNormalized = clean(bardzoWazneLabel);
+
+          const docsRows = [
+            {
+              requirement: zalecane.label || "Zalecane",
+              docs: [zalecane.detail].filter(Boolean),
+            },
+            {
+              requirement: wazne.label || "Ważne",
+              docs: [wazne.detail, clean(wazneLine2), clean(wazneLine3)].filter(Boolean),
+            },
+            {
+              requirement: bardzoWazneLabelNormalized || "Bardzo ważne",
+              docs: [
+                clean(bardzoWazneLine),
+                clean(bardzoWazneLine2),
+                clean(bardzoWazneLine3),
+              ].filter(Boolean),
+            },
+          ];
+
+          elements.push(
+            <h2 key={`${keyPrefix}-${startIndex + index}-wymaganie-rodzaj-dokumentow`}>
+              Wymaganie i rodzaj dokumentów
+            </h2>,
+          );
+          elements.push(
+            <div
+              key={`${keyPrefix}-${startIndex + index}-wymaganie-rodzaj-dokumentow-table`}
+              className="pierze-requirements-wrap"
+              aria-label="Tabela wymagań i rodzaju dokumentów"
+            >
+              <table className="pierze-requirements-table">
+                <thead>
+                  <tr>
+                    <th>Wymaganie</th>
+                    <th>Rodzaj dokumentów</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {docsRows.map((row) => (
+                    <tr key={`${keyPrefix}-${row.requirement}`}>
+                      <td>{row.requirement}</td>
+                      <td>
+                        <ul className="pierze-documents-list">
+                          {row.docs.map((doc) => (
+                            <li key={`${keyPrefix}-${row.requirement}-${doc}`}>{doc}</li>
+                          ))}
+                        </ul>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>,
+          );
+
+          index += 10;
+          continue;
+        }
+
+        const terminologyIntro =
+          current.toLocaleLowerCase("pl") === "terminologia i skróty" &&
+          (paragraphs[index + 1]?.trim().toLocaleLowerCase("pl") ?? "").startsWith(
+            "podmiot zewnętrzny",
+          ) &&
+          (paragraphs[index + 2]?.trim().toLocaleLowerCase("pl") ?? "").startsWith(
+            "podmiot wewnętrzny",
+          ) &&
+          (paragraphs[index + 3]?.trim().toLocaleLowerCase("pl") ?? "").startsWith(
+            "wnioskodawca",
+          ) &&
+          (paragraphs[index + 4]?.trim().toLocaleLowerCase("pl") ?? "").startsWith(
+            "wystawca",
+          ) &&
+          (paragraphs[index + 5]?.trim().toLocaleLowerCase("pl") ?? "").startsWith(
+            "dostawca",
+          );
+
+        if (terminologyIntro) {
+          const splitTermDefinition = (line: string) => {
+            const normalized = line.replace(/^\s*#+\s*/g, "").trim();
+            const parts = normalized.split(/[–-]/);
+            const termNormalized = (parts.shift() ?? "")
+              .replace(/\s+/g, " ")
+              .replace(/indywidualn\s+y/gi, "indywidualny")
+              .trim();
+            return {
+              term: termNormalized,
+              definition: parts.join("-").trim(),
+            };
+          };
+
+          const termsRows = [];
+          let consumed = 0;
+          for (let rowIndex = index + 1; rowIndex < paragraphs.length; rowIndex += 1) {
+            const rawLine = paragraphs[rowIndex] ?? "";
+            const normalizedLine = rawLine.trim().replace(/^\s*#+\s*/g, "");
+            if (!normalizedLine) {
+              break;
+            }
+
+            if (/^(PROCES AUDYTU)\b/i.test(normalizedLine)) {
+              break;
+            }
+
+            if (!normalizedLine.includes("–") && !normalizedLine.includes("-")) {
+              break;
+            }
+
+            const row = splitTermDefinition(rawLine);
+            if (!row.term || !row.definition) {
+              break;
+            }
+
+            termsRows.push(row);
+            consumed += 1;
+          }
+
+          if (termsRows.length === 0) {
+            termsRows.push(
+              splitTermDefinition(paragraphs[index + 1] ?? ""),
+              splitTermDefinition(paragraphs[index + 2] ?? ""),
+              splitTermDefinition(paragraphs[index + 3] ?? ""),
+              splitTermDefinition(paragraphs[index + 4] ?? ""),
+              splitTermDefinition(paragraphs[index + 5] ?? ""),
+            );
+            consumed = 5;
+          }
+
+          elements.push(
+            <h2 key={`${keyPrefix}-${startIndex + index}-terminologia-i-skroty`}>
+              TERMINOLOGIA I SKRÓTY
+            </h2>,
+          );
+          elements.push(
+            <div
+              key={`${keyPrefix}-${startIndex + index}-terminologia-i-skroty-table`}
+              className="pierze-requirements-wrap"
+              aria-label="Tabela terminologii i skrótów"
+            >
+              <table className="pierze-requirements-table pierze-terms-table">
+                <thead>
+                  <tr>
+                    <th>Pojęcie</th>
+                    <th>Opis</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {termsRows.map((row) => (
+                    <tr key={`${keyPrefix}-${row.term}`}>
+                      <td>{row.term}</td>
+                      <td>{row.definition}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>,
+          );
+
+          index += consumed;
+          continue;
+        }
+
+        const requestDataListIntro =
+          current.startsWith("1) dane Wnioskodawcy") &&
+          (paragraphs[index + 1]?.trim() ?? "").startsWith(
+            "2) nazwę, siedzibę i adres dostawcy pierza i puchu",
+          ) &&
+          (paragraphs[index + 2]?.trim() ?? "").startsWith("a) podmiot zewnętrzny") &&
+          (paragraphs[index + 3]?.trim() ?? "").startsWith("3) numer i datę wystawienia") &&
+          (paragraphs[index + 4]?.trim() ?? "").startsWith("4) asortyment pozyskanego pierza") &&
+          (paragraphs[index + 5]?.trim() ?? "").startsWith("5) dane dotyczące uzysku towaru");
+
+        if (requestDataListIntro) {
+          const stripListMarker = (line: string) =>
+            line.replace(/^\s*(?:\d+|[a-z])\)\s*/i, "").trim();
+
+          const supplierKindsLine = paragraphs[index + 2]?.trim() ?? "";
+          const supplierMatch = supplierKindsLine.match(/a\)\s*([^;]+);?\s*b\)\s*([^;]+);?/i);
+          const supplierKinds = supplierMatch
+            ? [supplierMatch[1].trim(), supplierMatch[2].trim()]
+            : [stripListMarker(supplierKindsLine)];
+
+          const listItems = [
+            {
+              text: stripListMarker(paragraphs[index] ?? ""),
+            },
+            {
+              text: stripListMarker(paragraphs[index + 1] ?? ""),
+              children: supplierKinds,
+            },
+            {
+              text: stripListMarker(paragraphs[index + 3] ?? ""),
+            },
+            {
+              text: stripListMarker(paragraphs[index + 4] ?? ""),
+            },
+            {
+              text: stripListMarker(paragraphs[index + 5] ?? ""),
+            },
+          ];
+
+          elements.push(
+            <section
+              key={`${keyPrefix}-${startIndex + index}-pierze-request-data-list`}
+              className="pierze-request-data-list"
+              aria-label="Zakres danych we wniosku"
+            >
+              <ol>
+                {listItems.map((item) => (
+                  <li key={`${keyPrefix}-${item.text.slice(0, 32)}`}>
+                    <span>{item.text}</span>
+                    {item.children && (
+                      <ul>
+                        {item.children.map((child) => (
+                          <li key={`${keyPrefix}-${child.slice(0, 28)}`}>{child}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            </section>,
+          );
+
+          index += 5;
+          continue;
+        }
+
+        const deliveryTermsListIntro =
+          current.startsWith("1) dostarczenia przez Wnioskodawcę będącym podmiotem wewnętrznym") &&
+          (paragraphs[index + 1]?.trim() ?? "").startsWith(
+            "2) dostarczenia przez Wnioskodawcę będącym podmiotem zewnętrznym",
+          );
+
+        if (deliveryTermsListIntro) {
+          const stripListMarker = (line: string) =>
+            line.replace(/^\s*(?:\d+|[a-z])\)\s*/i, "").trim();
+
+          const listItems = [
+            stripListMarker(paragraphs[index] ?? ""),
+            stripListMarker(paragraphs[index + 1] ?? ""),
+          ];
+
+          elements.push(
+            <section
+              key={`${keyPrefix}-${startIndex + index}-pierze-delivery-terms-list`}
+              className="pierze-request-data-list"
+              aria-label="Warunki dostarczenia wniosku"
+            >
+              <ol>
+                {listItems.map((item, itemIndex) => (
+                  <li key={`${keyPrefix}-delivery-${startIndex + index}-${itemIndex}`}>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ol>
+            </section>,
+          );
+
+          index += 1;
+          continue;
+        }
+
+        const terminologyDetailsListIntro =
+          current.startsWith("1) Asortyment") &&
+          (paragraphs[index + 1]?.trim() ?? "").startsWith("2) Puch") &&
+          (paragraphs[index + 2]?.trim() ?? "").startsWith("3) Półpuch") &&
+          (paragraphs[index + 3]?.trim() ?? "").startsWith("4) Pióra") &&
+          (paragraphs[index + 4]?.trim() ?? "").includes("Surowiec");
+
+        if (terminologyDetailsListIntro) {
+          const stripListMarker = (line: string) =>
+            line.replace(/^\s*(?:\d+|[a-z])\)\s*/i, "").trim();
+
+          const listItems = [
+            stripListMarker(paragraphs[index] ?? ""),
+            stripListMarker(paragraphs[index + 1] ?? ""),
+            stripListMarker(paragraphs[index + 2] ?? ""),
+            stripListMarker(paragraphs[index + 3] ?? ""),
+            stripListMarker(paragraphs[index + 4] ?? ""),
+          ];
+
+          elements.push(
+            <section
+              key={`${keyPrefix}-${startIndex + index}-pierze-terminology-details-list`}
+              className="pierze-request-data-list"
+              aria-label="Definicje asortymentu materiału pierzarskiego"
+            >
+              <ol>
+                {listItems.map((item, itemIndex) => (
+                  <li key={`${keyPrefix}-terminology-details-${startIndex + index}-${itemIndex}`}>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ol>
+            </section>,
+          );
+
+          index += 4;
+          continue;
+        }
+
+        elements.push(renderPierzeParagraph(paragraphs[index], startIndex + index, keyPrefix));
+      }
+
+      return elements;
+    };
+
+    const preA4Paragraphs =
+      a4StartIndex === -1 ? visibleParagraphs : visibleParagraphs.slice(0, a4StartIndex);
+    const a4Paragraphs = a4StartIndex === -1 ? [] : visibleParagraphs.slice(a4StartIndex);
+
+    return (
+      <div
+        className={`article-layout${shouldUseFullWidthArticleLayout ? " article-layout-full" : ""} shell`}
+      >
+        <article className={`prose${shouldJustifyArticleText ? " prose-justified" : ""} prose-pierze`}>
+          {renderPierzeSegment(preA4Paragraphs, 0, "pierze-pre")}
+
+          {a4Paragraphs.length > 0 && (
+            <section className="pierze-a4-sheet" aria-label="Regulamin audytów pochodzenia pierza i puchu">
+              {renderPierzeSegment(a4Paragraphs, a4StartIndex, "pierze-a4")}
+            </section>
+          )}
+
+          <a className="source-link source-link-inline" href={resolvedSource}>
+            Zobacz materiał na obecnej stronie KRD-IG <Arrow />
+          </a>
+        </article>
+      </div>
+    );
+  }
+
+  if (slug === "wazne-linki") {
+    const headingTitles = visibleParagraphs
+      .map((paragraph) => paragraph.trim())
+      .filter(
+        (paragraph, index) =>
+          index > 0 && looksLikeHeading(paragraph) && paragraph.toLocaleLowerCase("pl") !== "link",
+      );
+
+    const fallbackHrefByTitle = new Map<string, string>([
+      ["ministerstwo rolnictwa i rozwoju wsi", "https://www.gov.pl/web/rolnictwo"],
+      ["krajowe centrum hodowli zwierząt", "https://www.kchz.agro.pl/"],
+      ["narodowy instytut kultury i dziedzictwa wsi", "https://nikidw.edu.pl/"],
+      ["krajowy ośrodek wsparcia rolnictwa", "https://www.kowr.gov.pl/"],
+      ["gospodarz.tv – tv rolnicza", "https://gospodarz.tv/"],
+      ["portal rolniczy", "https://www.piagro.pl/"],
+      ["agencja restrukturyzacji i modernizacji rolnictwa", "https://www.arimr.gov.pl/"],
+      ["instytut ekonomiki rolnictwa i gospodarki żywościowej", "https://ierigz.waw.pl/"],
+      ["główny inspektorat weterynarii", "https://www.wetgiw.gov.pl/"],
+      ["główny urząd statystyczny", "https://www.stat.gov.pl/"],
+      ["pierwszy portal rolny", "https://www.ppr.pl/index.html"],
+      ["portal spożywczy", "https://www.portalspozywczy.pl/"],
+      ["farmer.pl – portal nowoczesnego rolnika", "https://www.farmer.pl/"],
+      ["rolnicy, serwis rolniczy, portal rolny", "https://rolnicy.com/"],
+      ["rolnicza telewizja interaktywna agronews", "https://www.agronews.com.pl/"],
+      ["portal ue", "https://european-union.europa.eu/index_en"],
+    ]);
+
+    const cleanHref = (rawHref: string, title: string) => {
+      const cleaned = rawHref.trim().replace(/%20/g, "").replace(/\s+/g, "");
+
+      if (/^https?:\/\/www\.gov\.pl\/web\/rolnictwo$/i.test(cleaned)) {
+        return "https://www.gov.pl/web/rolnictwo";
+      }
+
+      if (/^https?:\/\/european-union\.europa\.eu\/index_en$/i.test(cleaned)) {
+        return "https://european-union.europa.eu/index_en";
+      }
+
+      if (/^https?:\/\//i.test(cleaned) || cleaned.startsWith("mailto:") || cleaned.startsWith("tel:")) {
+        return cleaned;
+      }
+
+      if (cleaned.startsWith("/")) {
+        return `https://krd-ig.com.pl${cleaned}`;
+      }
+
+      const fallback = fallbackHrefByTitle.get(title.toLocaleLowerCase("pl"));
+      return fallback ?? cleaned;
+    };
+
+    const fallbackEntries = headingTitles
+      .map((title) => {
+        const href = fallbackHrefByTitle.get(title.toLocaleLowerCase("pl"));
+        return href ? { title, href } : null;
+      })
+      .filter((item): item is { title: string; href: string } => item !== null);
+
+    const byLinks = headingTitles
+      .map((title, index) => {
+        const link = links[index];
+        if (!link?.href) {
+          return null;
+        }
+        return {
+          title,
+          href: cleanHref(link.href, title),
+        };
+      })
+      .filter((item): item is { title: string; href: string } => item !== null);
+
+    const linkCards = (byLinks.length > 0 ? byLinks : fallbackEntries).map((item) => {
+      const normalizedTitle = item.title.toLocaleLowerCase("pl");
+      const logoOverride =
+        normalizedTitle === "ministerstwo rolnictwa i rozwoju wsi"
+          ? withBasePath("/media/partners/mrirw.ico")
+          : normalizedTitle === "portal rolniczy"
+          ? withBasePath("/media/partners/piagro.svg")
+          : normalizedTitle === "krajowy ośrodek wsparcia rolnictwa"
+            ? withBasePath("/media/partners/kowr.svg")
+            : normalizedTitle === "agencja restrukturyzacji i modernizacji rolnictwa"
+              ? withBasePath("/media/partners/arimr.svg")
+              : normalizedTitle === "główny urząd statystyczny"
+                ? withBasePath("/media/partners/gus.svg")
+                : normalizedTitle === "portal spożywczy"
+                  ? withBasePath("/media/partners/portal-spozywczy.svg")
+                  : normalizedTitle === "pierwszy portal rolny"
+                    ? withBasePath("/media/partners/ppr.svg")
+                    : normalizedTitle === "portal ue"
+                      ? withBasePath("/media/partners/portal-ue.svg")
+                      : normalizedTitle === "główny inspektorat weterynarii"
+                        ? withBasePath("/media/partners/giw.ico")
+            : normalizedTitle === "instytut ekonomiki rolnictwa i gospodarki żywościowej"
+              ? withBasePath("/media/partners/ierigz.svg")
+              : normalizedTitle === "gospodarz.tv – tv rolnicza"
+                ? withBasePath("/media/partners/gospodarz.svg")
+          : undefined;
+
+      return {
+        ...item,
+        logoOverride,
+      };
+    });
+
+    return (
+      <div className="article-layout article-layout-full shell">
+        <article className="prose prose-wazne-linki">
+          <h2>Szybki dostęp do najważniejszych linków</h2>
+
+          <div className="wazne-linki-grid" aria-label="Ważne linki instytucjonalne">
+            {linkCards.map((item) => (
+              <a
+                className="wazne-link-card"
+                href={item.href}
+                key={`${item.title}-${item.href}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span className="wazne-link-logo" aria-hidden="true">
+                  <ExternalFavicon href={item.href} title={item.title} logoSrc={item.logoOverride} />
+                </span>
+
+                <span className="wazne-link-content">
+                  <span className="wazne-link-title">{item.title}</span>
+                  <span className="wazne-link-cta">
+                    Przejdź do strony <Arrow />
+                  </span>
+                </span>
+              </a>
+            ))}
+          </div>
+
+          <a className="source-link source-link-inline" href={resolvedSource}>
+            Zobacz materiał na obecnej stronie KRD-IG <Arrow />
+          </a>
+        </article>
+      </div>
+    );
+  }
 
   return (
     <div
       className={`article-layout${shouldUseFullWidthArticleLayout ? " article-layout-full" : ""} shell`}
     >
-      <article className={`prose${shouldJustifyArticleText ? " prose-justified" : ""}`}>
+      <article
+        className={`prose${shouldJustifyArticleText ? " prose-justified" : ""}${slug === "pierze-i-puch-certyfikacja" ? " prose-pierze" : ""}`}
+      >
         {visibleParagraphs.map((paragraph, index) => {
+          const trimmedParagraph = paragraph.trim();
+
+          const tenderLinked = renderTenderLinkedText(
+            trimmedParagraph,
+            `${index}-${paragraph.slice(0, 20)}`,
+          );
+
           if (slug === "czlonkowie" && index < 2) {
             const label = index === 0 ? "CZŁONKOWIE" : "KRD-IG";
             return (
@@ -1818,23 +3644,110 @@ export function ArticleBody({
             );
           }
 
+          if (
+            slug === "kampania-stopdezinformacjizywnosciowej-i-kluczowe-wyzwania-rynkowe" &&
+            paragraph.trim().toLocaleLowerCase("pl") === "śniadanie prasowe"
+          ) {
+            return (
+              <h2 key={`${index}-${paragraph.slice(0, 20)}`}>
+                <a href={dezinformacjaBriefingPdfHref}>Śniadanie prasowe - komunikat</a>
+              </h2>
+            );
+          }
+
+          if (
+            slug === "jednolite-zasady-wspolczynnika-w-pr-wzmacniaja-przejrzystosc-rynku-drobiu" &&
+            paragraph.includes(ijharsAgreementUrlLabel)
+          ) {
+            const [beforeLink, afterLink = ""] = paragraph.split(ijharsAgreementUrlLabel);
+
+            return (
+              <p key={`${index}-${paragraph.slice(0, 20)}`}>
+                {beforeLink}
+                <a className="inline-download-link" href={ijharsAgreementHref}>
+                  {ijharsAgreementUrlLabel}
+                </a>
+                {afterLink}
+              </p>
+            );
+          }
+
+          if (slug === "wstawienia") {
+            return <p key={`${index}-${paragraph.slice(0, 20)}`}>{paragraph}</p>;
+          }
+
+          if (slug === "pierze-i-puch-certyfikacja") {
+            const isParagraphPoint = /^\s*(?:\d+|[a-z])\)\s+/i.test(trimmedParagraph);
+            const isSectionMarker = /^\s*§\s*\d+\s*$/.test(trimmedParagraph);
+            const isSectionHeading =
+              looksLikeAllCapsHeading(trimmedParagraph) ||
+              isSectionMarker ||
+              (index > 0 && looksLikeHeading(trimmedParagraph) && trimmedParagraph.length <= 55);
+
+            if (isSectionHeading && !isParagraphPoint) {
+              return <h2 key={`${index}-${paragraph.slice(0, 20)}`}>{paragraph}</h2>;
+            }
+
+            return (
+              <p
+                key={`${index}-${paragraph.slice(0, 20)}`}
+                className={isParagraphPoint ? "pierze-legal-point" : undefined}
+              >
+                {paragraph}
+              </p>
+            );
+          }
+
+          if (tenderLinked?.hasLink) {
+            const shouldRenderAsHeading = index > 0 && looksLikeHeading(trimmedParagraph);
+            return shouldRenderAsHeading ? (
+              <h2 key={tenderLinked.key}>{tenderLinked.node}</h2>
+            ) : (
+              <p key={tenderLinked.key}>{tenderLinked.node}</p>
+            );
+          }
+
           return index > 0 && looksLikeHeading(paragraph) ? (
             <h2 key={`${index}-${paragraph.slice(0, 20)}`}>{paragraph}</h2>
           ) : (
             <p key={`${index}-${paragraph.slice(0, 20)}`}>{paragraph}</p>
           );
         })}
-        {shouldUseFullWidthArticleLayout && (
-          <a className="source-link source-link-inline" href={resolvedSource}>
-            Zobacz materiał na obecnej stronie KRD-IG <Arrow />
-          </a>
+        {slug === "kampania-stopdezinformacjizywnosciowej-i-kluczowe-wyzwania-rynkowe" && (
+          <section className="news-media-section" aria-label="Zdjęcia i logo kampanii">
+            <h2>Zdjęcia</h2>
+            <div className="news-media-gallery">
+              {dezinformacjaBriefingPhotos.map((photo) => (
+                <figure key={photo.src}>
+                  <img src={photo.src} alt={photo.alt} loading="lazy" />
+                </figure>
+              ))}
+            </div>
+            <div className="news-media-logos">
+              {dezinformacjaBriefingLogos.map((logo) => (
+                <a href={logo.href} key={logo.src} target="_blank" rel="noopener noreferrer">
+                  <img
+                    src={logo.src}
+                    alt={logo.alt}
+                    loading="lazy"
+                    className={logo.className}
+                  />
+                </a>
+              ))}
+            </div>
+          </section>
         )}
-      </article>
-      {!shouldUseFullWidthArticleLayout && (
+        {slug === "czlonkowie" && (
+          <iframe
+            src="https://test.mapcreator.pl/krdig/index.php?&menu=hidden"
+            width="1024"
+            height="768"
+          />
+        )}
         <a className="source-link source-link-inline" href={resolvedSource}>
           Zobacz materiał na obecnej stronie KRD-IG <Arrow />
         </a>
-      )}
+      </article>
     </div>
   );
 }

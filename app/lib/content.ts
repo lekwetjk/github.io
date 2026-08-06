@@ -49,12 +49,28 @@ type ContentDatabase = {
 export const content = rawContent as ContentDatabase;
 
 function normalizePreviewText(value: string) {
-  return value
+  return decodeHtmlEntities(value)
     .replace(/\s+/g, " ")
     .replace(/([a-ząćęłńóśźż0-9])([A-ZĄĆĘŁŃÓŚŹŻ])/g, "$1 $2")
     .replace(/([.!?])([A-ZĄĆĘŁŃÓŚŹŻ])/g, "$1 $2")
     .replace(/([A-ZĄĆĘŁŃÓŚŹŻ]{2,})([a-ząćęłńóśźż]{2,})/g, "$1 $2")
     .trim();
+}
+
+function decodeHtmlEntities(value: string) {
+  return value
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex: string) => {
+      const codePoint = Number.parseInt(hex, 16);
+      return Number.isNaN(codePoint) ? "" : String.fromCodePoint(codePoint);
+    })
+    .replace(/&#(\d+);/g, (_, dec: string) => {
+      const codePoint = Number.parseInt(dec, 10);
+      return Number.isNaN(codePoint) ? "" : String.fromCodePoint(codePoint);
+    })
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'");
 }
 
 const navigationMarkers = [
@@ -74,6 +90,20 @@ const navigationMarkers = [
 
 function normalizeLine(value: string) {
   return value.replace(/\s+/g, " ").trim();
+}
+
+function cleanContentText(value: string) {
+  return normalizeLine(decodeHtmlEntities(value));
+}
+
+function isLeakedShortcodeParagraph(value: string) {
+  const normalized = normalizeLine(value);
+
+  if (!normalized) {
+    return false;
+  }
+
+  return /\[\/?dsm_[^\]]+\]/i.test(normalized);
 }
 
 function hasNavigationLeak(paragraphs: string[]) {
@@ -102,9 +132,7 @@ function hasArchiveLeak(links: ContentLink[]) {
 }
 
 function sanitizeNewsPost(post: NewsPost): NewsPost {
-  const normalizedParagraphs = post.paragraphs
-    .map(normalizeLine)
-    .filter(Boolean);
+  const normalizedParagraphs = post.paragraphs.map(cleanContentText).filter(Boolean);
 
   const looksCorrupted =
     normalizedParagraphs.length > 220 ||
@@ -113,7 +141,10 @@ function sanitizeNewsPost(post: NewsPost): NewsPost {
     hasArchiveLeak(post.links);
 
   if (!looksCorrupted) {
-    return post;
+    return {
+      ...post,
+      paragraphs: normalizedParagraphs,
+    };
   }
 
   return {
@@ -126,17 +157,77 @@ function sanitizeNewsPost(post: NewsPost): NewsPost {
   };
 }
 
+function normalizeWstawieniaParagraph(value: string) {
+  return value
+    .replace(/I p łrocze/gi, "I półrocze")
+    .replace(/II p łrocze/gi, "II półrocze")
+    .replace(/4 513 8168/g, "4 513 816")
+    .replace(/3 567 0878/g, "3 567 087")
+    .replace(/85 5830/g, "855 830")
+    .replace(/Gospodarczejul\./g, "Gospodarczej ul.")
+    .replace(/11e-mail:/g, "11 e-mail:")
+    .replace(/\s+,/g, ",")
+    .replace(/\s+\./g, ".")
+    .trim();
+}
+
+function normalizeLinkHref(value: string) {
+  const href = String(value ?? "").trim();
+
+  if (!href) {
+    return href;
+  }
+
+  if (/^mailto:\/+/i.test(href)) {
+    return href.replace(/^mailto:\/+/i, "mailto:");
+  }
+
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/i.test(href)) {
+    return `mailto:${href}`;
+  }
+
+  if (/^www\./i.test(href)) {
+    return `https://${href}`;
+  }
+
+  return href;
+}
+
+function normalizeLinks(links: ContentLink[]) {
+  return links.map((link) => ({
+    ...link,
+    href: normalizeLinkHref(link.href),
+  }));
+}
+
 export const knowledgePages = content.pages.map((page) => ({
   ...page,
+  paragraphs: page.paragraphs
+    .map(cleanContentText)
+    .map((paragraph) =>
+      page.slug === "wstawienia"
+        ? normalizeWstawieniaParagraph(paragraph)
+        : paragraph,
+    )
+    .filter((paragraph) => paragraph && !isLeakedShortcodeParagraph(paragraph)),
   title:
     page.slug === "czlonkowie"
       ? page.title.replace(/KRDIG/g, "KRD-IG")
       : page.title,
-  excerpt: normalizePreviewText(page.excerpt),
+  excerpt:
+    page.slug === "akcja-stopdezinformacjizywnosciowej"
+      ? "Akcja #StopDezinformacjiŻywnościowej wspiera rzetelne informowanie o mięsie drobiowym i przeciwdziała szkodliwej dezinformacji żywnościowej."
+      : page.slug === "wstawienia"
+        ? "Wstawienia 2015 - 2026. Liczba piskląt hodowlanych kur mięsnych (stada rodzicielskie - w szt. samic) przyjętych do wychowu wraz z dynamiką zmian wielkości zaplecza (%)."
+      : normalizePreviewText(page.excerpt),
+  links: normalizeLinks(page.links),
 }));
 
 export const newsPosts = content.posts.map((post) => ({
-  ...sanitizeNewsPost(post),
+  ...sanitizeNewsPost({
+    ...post,
+    links: normalizeLinks(post.links),
+  }),
   excerpt: normalizePreviewText(post.excerpt),
 }));
 

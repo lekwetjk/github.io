@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="iERiGŻ">
+  <rect width="256" height="256" rx="42" fill="#eef4f8"/>
+  <rect x="18" y="18" width="220" height="220" rx="34" fill="#ffffff" stroke="#b9cddd" stroke-width="4"/>
+  <circle cx="78" cy="92" r="18" fill="#1f4d76"/>
+  <rect x="63" y="114" width="30" height="62" rx="10" fill="#1f4d76"/>
+  <path d="M112 178V82h30c30 0 49 18 49 48s-19 48-49 48h-30zm30-27c13 0 20-7 20-21s-7-21-20-21h-9v42h9z" fill="#1f4d76"/>
+  <text x="128" y="214" text-anchor="middle" font-family="Aptos, Segoe UI, Arial, sans-serif" font-size="22" font-weight="800" fill="#1f4d76">iERiGŻ</text>
+</svg>

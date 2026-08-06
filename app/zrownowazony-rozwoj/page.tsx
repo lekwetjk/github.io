@@ -42,9 +42,9 @@ export default function SustainabilityPage() {
         "poszanowanie-srodowiska",
       ]}
       facts={[
-        { value: "QAFP", label: "oficjalny krajowy system jakości żywności" },
         { value: "od pola", label: "do stołu — bezpieczeństwo na każdym etapie" },
         { value: "UE", label: "wysokie standardy dobrostanu i ochrony środowiska" },
+        { value: "QAFP", label: "oficjalny krajowy system jakości żywności" },
       ]}
     />
   );

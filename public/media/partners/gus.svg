@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="GUS">
+  <rect width="256" height="256" rx="40" fill="#fff3e8"/>
+  <rect x="16" y="16" width="224" height="224" rx="32" fill="#ffffff" stroke="#efcfb6" stroke-width="4"/>
+  <path d="M56 128c0-32 23-54 55-54 16 0 29 5 39 14l-18 20c-5-4-11-7-19-7-14 0-24 11-24 27 0 17 10 28 27 28 5 0 9-1 12-3v-11h-17v-24h45v50c-11 10-26 16-43 16-35 0-57-21-57-56zm112 50V78h32v100h-32z" fill="#b86024"/>
+  <text x="128" y="214" text-anchor="middle" font-family="Aptos, Segoe UI, Arial, sans-serif" font-size="24" font-weight="800" fill="#b86024">GUS</text>
+</svg>
