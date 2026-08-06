@@ -1,4 +1,5 @@
 import type { ContentLink } from "../lib/content";
+import type { ReactNode } from "react";
 import { withBasePath } from "../lib/basePath";
 import { Arrow } from "./SiteChrome";
 import { MembershipSignupForm } from "./MembershipSignupForm";
@@ -763,8 +764,9 @@ export function ArticleBody({
             .join(" ")
         : "";
     const tickCount = 5;
+    const tickDenominator = Math.max(tickCount - 1, 1);
     const yTicks = Array.from({ length: tickCount }, (_, index) => {
-      const ratio = tickCount === 1 ? 0 : index / (tickCount - 1);
+      const ratio = index / tickDenominator;
       const value = maxTotal - ratio * (maxTotal - minTotal);
       const y = chartPadding.top + ratio * plotHeight;
       return {
@@ -890,7 +892,7 @@ export function ArticleBody({
         : "";
 
     const dynamicsTicks = Array.from({ length: tickCount }, (_, index) => {
-      const ratio = tickCount === 1 ? 0 : index / (tickCount - 1);
+      const ratio = index / tickDenominator;
       const value = dynamicsMax - ratio * (dynamicsMax - dynamicsMin);
       const y = chartPadding.top + ratio * plotHeight;
       return {
@@ -2214,7 +2216,7 @@ export function ArticleBody({
       return null;
     };
 
-    const qualityBlock = (kind: string, content: JSX.Element) => (
+    const qualityBlock = (kind: string, content: ReactNode) => (
       <div className="jakosc-block">
         <span className="jakosc-pictogram">{qualityPictogram(kind)}</span>
         <div className="jakosc-block-content">{content}</div>
@@ -3041,7 +3043,7 @@ export function ArticleBody({
       startIndex: number,
       keyPrefix: string,
     ) => {
-      const elements: JSX.Element[] = [];
+      const elements: ReactNode[] = [];
 
       for (let index = 0; index < paragraphs.length; index += 1) {
         const current = paragraphs[index]?.trim() ?? "";
