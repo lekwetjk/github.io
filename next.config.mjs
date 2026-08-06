@@ -10,8 +10,9 @@ function resolveBasePath() {
   const repository = process.env.GITHUB_REPOSITORY?.split("/")[1] ?? "";
   const owner = process.env.GITHUB_REPOSITORY?.split("/")[0] ?? "";
   const isUserSiteRepo = repository.toLowerCase() === `${owner.toLowerCase()}.github.io`;
+  const isRootHostedRepo = repository.toLowerCase() === "github.io";
 
-  if (!isProduction || !repository || isUserSiteRepo) {
+  if (!isProduction || !repository || isUserSiteRepo || isRootHostedRepo) {
     return "";
   }
 
